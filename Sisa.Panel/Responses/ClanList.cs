@@ -2,7 +2,7 @@
 
 namespace Sisa.Panel.Responses
 {
-    public class ClansList
+    public class ClanList
     {
         public ICollection<ClanEntry> Clans { get; set; }
     }

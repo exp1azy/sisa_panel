@@ -11,7 +11,10 @@
             //var chatLog = await client.GetChatLogAsync();
             //var admins = await client.GetAdminsListAsync();
             //var liveStatus = await client.GetLiveStatusAsync();
-            var clans = await client.GetClansListAsync();
+            //var clans = await client.GetClanListAsync();
+            //var clan = await client.GetClanInfoAsync(clans.Clans.ToList().First().Id);
+            //var playerStats = await client.GetPlayerStatsAsync(100, 3);
+            var weapons = await client.GetWeaponStatsAsync();
 
             ;
         }

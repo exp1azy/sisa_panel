@@ -2,7 +2,7 @@
 
 namespace Sisa.Panel.Responses
 {
-    public class AdminsList
+    public class AdminList
     {
         public ICollection<AdminInfo> Admins { get; set; }
     }

@@ -5,13 +5,13 @@ using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class AdminsListParser(IBrowsingContext context) : BaseParser<AdminsList>(context)
+    internal class AdminListParser(IBrowsingContext context) : BaseParser<AdminList>(context)
     {
-        public override async Task<AdminsList> ParseAsync(string html)
+        public override async Task<AdminList> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
 
-            var adminsList = new AdminsList
+            var adminsList = new AdminList
             {
                 Admins = ParseAdminInfos(document)
             };

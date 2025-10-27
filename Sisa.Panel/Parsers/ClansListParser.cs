@@ -5,13 +5,13 @@ using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class ClansListParser(IBrowsingContext context) : BaseParser<ClansList>(context)
+    internal partial class ClanListParser(IBrowsingContext context) : BaseParser<ClanList>(context)
     {
-        public override async Task<ClansList> ParseAsync(string html)
+        public override async Task<ClanList> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
 
-            var clans = new ClansList
+            var clans = new ClanList
             {
                 Clans = ParseClansTable(document)
             };
@@ -61,41 +61,41 @@ namespace Sisa.Panel.Parsers
             var clanLink = cells[1].QuerySelector("a");
 
             if (clanLink != null)
+            {
                 clan.ClanName = clanLink.TextContent?.Trim();
+
+                var href = clanLink.GetAttribute("href");
+                var idMatch = IdRegex().Match(href);
+
+                if (idMatch.Success && idMatch.Groups.Count > 1)
+                {
+                    _ = int.TryParse(idMatch.Groups[1].Value, out int id);
+                    clan.Id = id;
+                }
+            }
             else
+            {
                 clan.ClanName = cells[1].TextContent?.Trim();
+                clan.Id = -1;
+            }
 
             if (!string.IsNullOrEmpty(clan.ClanName))
                 clan.ClanName = ClanNameRegex().Replace(clan.ClanName, " ").Trim();
 
             var actions = new List<string>();
-            var requestsSpan = cells[2].QuerySelector("span[title*='заявок']");
+            var spans = cells[2].QuerySelectorAll("span");
 
-            if (requestsSpan != null)
+            foreach (var span in spans)
             {
-                var requestText = requestsSpan.TextContent?.Trim();
+                var title = span.GetAttribute("title")?.Trim();
 
-                if (!string.IsNullOrEmpty(requestText))
-                    actions.Add($"Заявки: {requestText}");
+                if (string.IsNullOrEmpty(title))
+                    continue;
+
+                actions.Add(title);
             }
 
-            var invitesSpan = cells[2].QuerySelector("span[title*='приглашений']");
-            if (invitesSpan != null)
-            {
-                var inviteText = invitesSpan.TextContent?.Trim();
-
-                if (!string.IsNullOrEmpty(inviteText))
-                    actions.Add($"Приглашения: {inviteText}");
-            }
-
-            var deleteSpan = cells[2].QuerySelector("span[title*='удален']");
-            if (deleteSpan != null)
-                actions.Add("Может быть удален");
-
-            if (actions.Count != 0)
-                clan.Actions = string.Join("; ", actions);
-            else
-                clan.Actions = "No Actions";
+            clan.Actions = actions;
 
             var playersText = cells[3].TextContent?.Trim();
 
@@ -109,5 +109,8 @@ namespace Sisa.Panel.Parsers
 
         [System.Text.RegularExpressions.GeneratedRegex(@"\s+")]
         private static partial System.Text.RegularExpressions.Regex ClanNameRegex();
+
+        [System.Text.RegularExpressions.GeneratedRegex(@"[?&]id=(\d+)")]
+        private static partial System.Text.RegularExpressions.Regex IdRegex();
     }
 }
