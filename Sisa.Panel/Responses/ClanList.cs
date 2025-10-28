@@ -1,9 +1,9 @@
-﻿using Sisa.Panel.Models;
+﻿using Sisa.Panel.Models.Clans;
 
 namespace Sisa.Panel.Responses
 {
     public class ClanList
     {
-        public ICollection<ClanEntry> Clans { get; set; }
+        public IList<ClanEntry> Clans { get; set; }
     }
 }

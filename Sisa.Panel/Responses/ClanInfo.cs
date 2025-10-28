@@ -1,4 +1,4 @@
-﻿using Sisa.Panel.Models;
+﻿using Sisa.Panel.Models.Clans;
 
 namespace Sisa.Panel.Responses
 {
@@ -6,8 +6,8 @@ namespace Sisa.Panel.Responses
     {
         public ClanGeneralInfo GeneralInfo { get; set; }
 
-        public ICollection<ClanLastActionEntry> LastActions { get; set; }
+        public IList<ClanLastActionEntry> LastActions { get; set; }
 
-        public ICollection<ClanPlayerEntry> Members { get; set; }
+        public IList<ClanPlayerEntry> Members { get; set; }
     }
 }

@@ -1,10 +1,10 @@
-﻿using Sisa.Panel.Models;
+﻿using Sisa.Panel.Models.BanList;
 
 namespace Sisa.Panel.Responses
 {
     public class BanList
     {
-        public ICollection<BanEntry> Bans { get; set; }
+        public IList<BanEntry> Bans { get; set; }
 
         public int TotalBans { get; set; }
 

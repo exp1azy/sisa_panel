@@ -1,9 +1,9 @@
-﻿using Sisa.Panel.Models;
+﻿using Sisa.Panel.Models.Chatlog;
 
 namespace Sisa.Panel.Responses
 {
     public class ChatLog
     {
-        public ICollection<ChatLogEntry> Messages { get; set; }
+        public IList<ChatLogEntry> Messages { get; set; }
     }
 }

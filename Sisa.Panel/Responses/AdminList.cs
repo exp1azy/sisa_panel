@@ -1,9 +1,9 @@
-﻿using Sisa.Panel.Models;
+﻿using Sisa.Panel.Models.AdminList;
 
 namespace Sisa.Panel.Responses
 {
     public class AdminList
     {
-        public ICollection<AdminInfo> Admins { get; set; }
+        public IList<AdminInfo> Admins { get; set; }
     }
 }

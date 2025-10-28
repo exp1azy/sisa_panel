@@ -1,6 +1,6 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
-using Sisa.Panel.Models;
+using Sisa.Panel.Models.Clans;
 using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers

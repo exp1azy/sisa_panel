@@ -1,4 +1,4 @@
-﻿namespace Sisa.Panel.Models
+﻿namespace Sisa.Panel.Models.Clans
 {
     public class ClanLastActionEntry
     {

@@ -1,10 +1,10 @@
-﻿using Sisa.Panel.Models;
+﻿using Sisa.Panel.Models.ChatBanList;
 
 namespace Sisa.Panel.Responses
 {
     public class ChatBanList
     {
-        public ICollection<ChatBanEntry> ChatBans { get; set; }
+        public IList<ChatBanEntry> ChatBans { get; set; }
 
         public int TotalBans { get; set; }
 

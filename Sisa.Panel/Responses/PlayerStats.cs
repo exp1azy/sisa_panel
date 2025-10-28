@@ -1,9 +1,9 @@
-﻿using Sisa.Panel.Models;
+﻿using Sisa.Panel.Models.Stat;
 
 namespace Sisa.Panel.Responses
 {
     public class PlayerStats
     {
-        public List<PlayerStatEntry> Stats { get; set; }
+        public IList<PlayerStatEntry> Stats { get; set; }
     }
 }

@@ -7,7 +7,6 @@ namespace Sisa.Panel
     public class SisaPanelClient
     {
         private readonly HttpClient _httpClient;
-        private readonly IBrowsingContext _context;
 
         private readonly BanListParser _banListParser;
         private readonly ChatBanListParser _chatBanListParser;
@@ -18,24 +17,29 @@ namespace Sisa.Panel
         private readonly ClanInfoParser _clanInfoParser;
         private readonly PlayerStatsParser _playerStatsParser;
         private readonly WeaponStatsParser _weaponStatsParser;
+        private readonly HumanTopPlayersParser _humanBestPlayersParser;
+        private readonly ZombieTopPlayersParser _zombieBestPlayersParser;
 
         public SisaPanelClient(HttpClient? httpClient = null)
         {
             httpClient ??= new HttpClient();
+            httpClient.DefaultRequestHeaders.Clear();
             httpClient.BaseAddress = new Uri("https://panel.lan-game.com");
             _httpClient = httpClient;
 
-            _context = BrowsingContext.New(Configuration.Default);
+            var context = BrowsingContext.New(Configuration.Default);
 
-            _banListParser = new BanListParser(_context);
-            _chatBanListParser = new ChatBanListParser(_context);
-            _chatLogParser = new ChatLogParser(_context);
-            _adminListParser = new AdminListParser(_context);
-            _liveStatusParser = new LiveStatusParser(_context);
-            _clanListParser = new ClanListParser(_context);
-            _clanInfoParser = new ClanInfoParser(_context);
-            _playerStatsParser = new PlayerStatsParser(_context);
-            _weaponStatsParser = new WeaponStatsParser(_context);
+            _banListParser = new BanListParser(context);
+            _chatBanListParser = new ChatBanListParser(context);
+            _chatLogParser = new ChatLogParser(context);
+            _adminListParser = new AdminListParser(context);
+            _liveStatusParser = new LiveStatusParser(context);
+            _clanListParser = new ClanListParser(context);
+            _clanInfoParser = new ClanInfoParser(context);
+            _playerStatsParser = new PlayerStatsParser(context);
+            _weaponStatsParser = new WeaponStatsParser(context);
+            _humanBestPlayersParser = new HumanTopPlayersParser(context);
+            _zombieBestPlayersParser = new ZombieTopPlayersParser(context);
         }
 
         public async Task<BanList> GetBanListAsync(int page = 1, int view = 20, CancellationToken cancellationToken = default)
@@ -95,6 +99,18 @@ namespace Sisa.Panel
         {
             var html = await _httpClient.GetStringAsync("/stat.php?sid=0&action=weapons", cancellationToken);
             return await _weaponStatsParser.ParseAsync(html);
+        }
+
+        public async Task<HumanTopPlayersStat> GetHumanTopPlayersAsync(CancellationToken cancellationToken = default)
+        {
+            var html = await _httpClient.GetStringAsync("/stat.php?sid=0&action=hmcl", cancellationToken);
+            return await _humanBestPlayersParser.ParseAsync(html);
+        }
+
+        public async Task<ZombieTopPlayersStat> GetZombieTopPlayersAsync(CancellationToken cancellationToken = default)
+        {
+            var html = await _httpClient.GetStringAsync("/stat.php?sid=0&action=zmcl", cancellationToken);
+            return await _zombieBestPlayersParser.ParseAsync(html);
         }
     }
 }

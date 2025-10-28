@@ -1,4 +1,4 @@
-﻿using Sisa.Panel.Models;
+﻿using Sisa.Panel.Models.Live;
 
 namespace Sisa.Panel.Responses
 {
@@ -6,12 +6,12 @@ namespace Sisa.Panel.Responses
     {
         public ServerStatus Status { get; set; }
 
-        public ICollection<PlayerInfo> Players { get; set; }
+        public IList<PlayerInfo> Players { get; set; }
 
-        public ICollection<TeamSummary> Teams { get; set; }
+        public IList<TeamSummary> Teams { get; set; }
 
         public ServerStatistics Statistics { get; set; }
 
-        public ICollection<string> PreviousMaps { get; set; }
+        public IList<string> PreviousMaps { get; set; }
     }
 }

@@ -14,7 +14,9 @@
             //var clans = await client.GetClanListAsync();
             //var clan = await client.GetClanInfoAsync(clans.Clans.ToList().First().Id);
             //var playerStats = await client.GetPlayerStatsAsync(100, 3);
-            var weapons = await client.GetWeaponStatsAsync();
+            //var weapons = await client.GetWeaponStatsAsync();
+            //var stats = await client.GetHumanTopPlayersStatsAsync();
+            var stats = await client.GetZombieTopPlayersAsync();
 
             ;
         }

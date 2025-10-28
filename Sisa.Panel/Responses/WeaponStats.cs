@@ -1,11 +1,11 @@
-﻿using Sisa.Panel.Models;
+﻿using Sisa.Panel.Models.Stat;
 
 namespace Sisa.Panel.Responses
 {
     public class WeaponStats
     {
-        public List<WeaponEntry> Weapons { get; set; }
+        public IList<WeaponEntry> Weapons { get; set; }
 
-        public List<ModWeaponEntry> ModWeapons { get; set; }
+        public IList<ModWeaponEntry> ModWeapons { get; set; }
     }
 }
