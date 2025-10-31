@@ -5,11 +5,11 @@ using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class ZombieTopPlayersParser(IBrowsingContext context) : BaseParser<ZombieTopPlayersStat>(context)
+    internal class ZombieTopPlayersParser(IBrowsingContext context) : IParsable<ZombieTopPlayersStat>
     {
-        public override async Task<ZombieTopPlayersStat> ParseAsync(string html)
+        public async Task<ZombieTopPlayersStat> ParseAsync(string html)
         {
-            var document = await Context.OpenAsync(req => req.Content(html));
+            var document = await context.OpenAsync(req => req.Content(html));
 
             return new ZombieTopPlayersStat
             {

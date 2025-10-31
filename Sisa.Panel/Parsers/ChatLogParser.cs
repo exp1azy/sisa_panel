@@ -1,22 +1,15 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
 using Sisa.Panel.Models.Chatlog;
-using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class ChatLogParser(IBrowsingContext context) : BaseParser<ChatLog>(context)
+    internal class ChatLogParser(IBrowsingContext context) : IParsable<IReadOnlyList<ChatLogEntry>>
     {
-        public override async Task<ChatLog> ParseAsync(string html)
+        public async Task<IReadOnlyList<ChatLogEntry>> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
-
-            var chatLog = new ChatLog
-            {
-                Messages = ParseMessages(document)
-            };
-
-            return chatLog;
+            return ParseMessages(document);
         }
 
         private static List<ChatLogEntry> ParseMessages(IDocument document)

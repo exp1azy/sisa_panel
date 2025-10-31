@@ -4,8 +4,8 @@ namespace Sisa.Panel.Responses
 {
     public class WeaponStats
     {
-        public IList<WeaponEntry> Weapons { get; set; }
+        public IReadOnlyList<WeaponEntry> Weapons { get; set; }
 
-        public IList<ModWeaponEntry> ModWeapons { get; set; }
+        public IReadOnlyList<ModWeaponEntry> ModWeapons { get; set; }
     }
 }

@@ -1,4 +1,8 @@
 ﻿using AngleSharp;
+using Sisa.Panel.Models.AdminList;
+using Sisa.Panel.Models.Chatlog;
+using Sisa.Panel.Models.Clans;
+using Sisa.Panel.Models.Stat;
 using Sisa.Panel.Parsers;
 using Sisa.Panel.Responses;
 
@@ -19,6 +23,8 @@ namespace Sisa.Panel
         private readonly WeaponStatsParser _weaponStatsParser;
         private readonly HumanTopPlayersParser _humanBestPlayersParser;
         private readonly ZombieTopPlayersParser _zombieBestPlayersParser;
+        private readonly MapStatsParser _mapStatsParser;
+        private readonly PlayerInfoParser _playerInfoParser;
 
         public SisaPanelClient(HttpClient? httpClient = null)
         {
@@ -40,6 +46,8 @@ namespace Sisa.Panel
             _weaponStatsParser = new WeaponStatsParser(context);
             _humanBestPlayersParser = new HumanTopPlayersParser(context);
             _zombieBestPlayersParser = new ZombieTopPlayersParser(context);
+            _mapStatsParser = new MapStatsParser(context);
+            _playerInfoParser = new PlayerInfoParser(context);
         }
 
         public async Task<BanList> GetBanListAsync(int page = 1, int view = 20, CancellationToken cancellationToken = default)
@@ -54,7 +62,7 @@ namespace Sisa.Panel
             return await _chatBanListParser.ParseAsync(html);
         }
 
-        public async Task<ChatLog> GetChatLogAsync(int view = 200, int page = 1, DateOnly date = default, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ChatLogEntry>> GetChatLogAsync(int view = 200, int page = 1, DateOnly date = default, CancellationToken cancellationToken = default)
         {
             if (date == default)
                 date = DateOnly.FromDateTime(DateTime.Now);
@@ -65,7 +73,7 @@ namespace Sisa.Panel
             return await _chatLogParser.ParseAsync(html);
         }
 
-        public async Task<AdminList> GetAdminListAsync(CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<AdminInfo>> GetAdminListAsync(CancellationToken cancellationToken = default)
         {
             var html = await _httpClient.GetStringAsync("/admins_list.php", cancellationToken);
             return await _adminListParser.ParseAsync(html);
@@ -77,7 +85,7 @@ namespace Sisa.Panel
             return await _liveStatusParser.ParseAsync(html);
         }
 
-        public async Task<ClanList> GetClanListAsync(CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ClanEntry>> GetClanListAsync(CancellationToken cancellationToken = default)
         {
             var html = await _httpClient.GetStringAsync("/clans.php", cancellationToken);
             return await _clanListParser.ParseAsync(html);
@@ -89,7 +97,7 @@ namespace Sisa.Panel
             return await _clanInfoParser.ParseAsync(html);
         }
 
-        public async Task<PlayerStats> GetPlayerStatsAsync(int view = 50, int page = 1, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<PlayerStatEntry>> GetPlayerStatsAsync(int view = 50, int page = 1, CancellationToken cancellationToken = default)
         {
             var html = await _httpClient.GetStringAsync($"/stat.php?sid=0&view={view}&page={page}", cancellationToken);
             return await _playerStatsParser.ParseAsync(html);
@@ -111,6 +119,18 @@ namespace Sisa.Panel
         {
             var html = await _httpClient.GetStringAsync("/stat.php?sid=0&action=zmcl", cancellationToken);
             return await _zombieBestPlayersParser.ParseAsync(html);
+        }
+
+        public async Task<IReadOnlyList<MapEntry>> GetMapStatsAsync(CancellationToken cancellationToken = default)
+        {
+            var html = await _httpClient.GetStringAsync("/stat.php?sid=0&action=maps", cancellationToken);
+            return await _mapStatsParser.ParseAsync(html);
+        }
+
+        public async Task<PlayerInfo> GetPlayerInfo(int uid, CancellationToken cancellationToken = default)
+        {
+            var html = await _httpClient.GetStringAsync($"/stat.php?sid=0&action=player&uid={uid}", cancellationToken);
+            return await _playerInfoParser.ParseAsync(html);
         }
     }
 }

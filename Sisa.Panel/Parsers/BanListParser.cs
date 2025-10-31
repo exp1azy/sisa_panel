@@ -5,11 +5,11 @@ using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class BanListParser(IBrowsingContext context) : BaseParser<BanList>(context)
+    internal partial class BanListParser(IBrowsingContext context) : IParsable<BanList>
     {
-        public override async Task<BanList> ParseAsync(string htmlContent)
+        public async Task<BanList> ParseAsync(string htmlContent)
         {
-            var document = await Context.OpenAsync(req => req.Content(htmlContent));
+            var document = await context.OpenAsync(req => req.Content(htmlContent));
 
             var banList = new BanList
             {

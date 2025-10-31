@@ -5,9 +5,9 @@ using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class LiveStatusParser(IBrowsingContext context) : BaseParser<ServerLiveStatus>(context)
+    internal partial class LiveStatusParser(IBrowsingContext context) : IParsable<ServerLiveStatus>
     {
-        public override async Task<ServerLiveStatus> ParseAsync(string html)
+        public async Task<ServerLiveStatus> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
 
@@ -69,9 +69,9 @@ namespace Sisa.Panel.Parsers
             return status;
         }
 
-        private static List<PlayerInfo> ParsePlayers(IDocument document)
+        private static List<PlayerLiveInfo> ParsePlayers(IDocument document)
         {
-            var players = new List<PlayerInfo>();
+            var players = new List<PlayerLiveInfo>();
             var playerRows = document.QuerySelectorAll("#scoreboard table tbody tr");
 
             foreach (var row in playerRows)
@@ -82,7 +82,7 @@ namespace Sisa.Panel.Parsers
                 var cells = row.QuerySelectorAll("td").ToArray();
                 if (cells.Length >= 7)
                 {
-                    var player = new PlayerInfo();
+                    var player = new PlayerLiveInfo();
 
                     if (row.ClassList.Contains("zombie"))
                         player.Team = PlayerTeam.Zombie;

@@ -5,9 +5,9 @@ using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class ChatBanListParser(IBrowsingContext context) : BaseParser<ChatBanList>(context)
+    internal partial class ChatBanListParser(IBrowsingContext context) : IParsable<ChatBanList>
     {
-        public async override Task<ChatBanList> ParseAsync(string html)
+        public async Task<ChatBanList> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
             var chatBanList = new ChatBanList()

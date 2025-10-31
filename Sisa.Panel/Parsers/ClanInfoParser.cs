@@ -6,11 +6,11 @@ using System.Globalization;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class ClanInfoParser(IBrowsingContext context) : BaseParser<ClanInfo>(context)
+    internal class ClanInfoParser(IBrowsingContext context) : IParsable<ClanInfo>
     {
-        public override async Task<ClanInfo> ParseAsync(string html)
+        public async Task<ClanInfo> ParseAsync(string html)
         {
-            var document = await Context.OpenAsync(req => req.Content(html));
+            var document = await context.OpenAsync(req => req.Content(html));
 
             var clanInfo = new ClanInfo
             {

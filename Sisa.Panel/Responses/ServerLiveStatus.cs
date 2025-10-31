@@ -6,12 +6,12 @@ namespace Sisa.Panel.Responses
     {
         public ServerStatus Status { get; set; }
 
-        public IList<PlayerInfo> Players { get; set; }
+        public IReadOnlyList<PlayerLiveInfo> Players { get; set; }
 
-        public IList<TeamSummary> Teams { get; set; }
+        public IReadOnlyList<TeamSummary> Teams { get; set; }
 
         public ServerStatistics Statistics { get; set; }
 
-        public IList<string> PreviousMaps { get; set; }
+        public IReadOnlyList<string> PreviousMaps { get; set; }
     }
 }

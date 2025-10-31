@@ -1,22 +1,15 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
 using Sisa.Panel.Models.AdminList;
-using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class AdminListParser(IBrowsingContext context) : BaseParser<AdminList>(context)
+    internal class AdminListParser(IBrowsingContext context) : IParsable<IReadOnlyList<AdminInfo>>
     {
-        public override async Task<AdminList> ParseAsync(string html)
+        public async Task<IReadOnlyList<AdminInfo>> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
-
-            var adminsList = new AdminList
-            {
-                Admins = ParseAdminInfos(document)
-            };
-
-            return adminsList;
+            return ParseAdminInfos(document);
         }
 
         private static List<AdminInfo> ParseAdminInfos(IDocument document)

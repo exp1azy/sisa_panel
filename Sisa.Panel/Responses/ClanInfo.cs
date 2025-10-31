@@ -6,8 +6,8 @@ namespace Sisa.Panel.Responses
     {
         public ClanGeneralInfo GeneralInfo { get; set; }
 
-        public IList<ClanLastActionEntry> LastActions { get; set; }
+        public IReadOnlyList<ClanLastActionEntry> LastActions { get; set; }
 
-        public IList<ClanPlayerEntry> Members { get; set; }
+        public IReadOnlyList<ClanPlayerEntry> Members { get; set; }
     }
 }

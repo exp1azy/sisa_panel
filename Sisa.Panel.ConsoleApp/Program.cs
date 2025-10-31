@@ -16,9 +16,9 @@
             //var playerStats = await client.GetPlayerStatsAsync(100, 3);
             //var weapons = await client.GetWeaponStatsAsync();
             //var stats = await client.GetHumanTopPlayersStatsAsync();
-            var stats = await client.GetZombieTopPlayersAsync();
-
-            ;
+            //var stats = await client.GetZombieTopPlayersAsync();
+            //var maps = await client.GetMapStatsAsync();
+            var player = await client.GetPlayerInfo(26701);
         }
     }
 }

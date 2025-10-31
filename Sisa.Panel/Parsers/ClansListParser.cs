@@ -1,22 +1,15 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
 using Sisa.Panel.Models.Clans;
-using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class ClanListParser(IBrowsingContext context) : BaseParser<ClanList>(context)
+    internal partial class ClanListParser(IBrowsingContext context) : IParsable<IReadOnlyList<ClanEntry>>
     {
-        public override async Task<ClanList> ParseAsync(string html)
+        public async Task<IReadOnlyList<ClanEntry>> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
-
-            var clans = new ClanList
-            {
-                Clans = ParseClansTable(document)
-            };
-
-            return clans;
+            return ParseClansTable(document);
         }
 
         private static List<ClanEntry> ParseClansTable(IDocument document)

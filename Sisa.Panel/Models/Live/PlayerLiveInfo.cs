@@ -1,6 +1,6 @@
 ﻿namespace Sisa.Panel.Models.Live
 {
-    public class PlayerInfo
+    public class PlayerLiveInfo
     {
         public string PlayerName { get; set; }
 

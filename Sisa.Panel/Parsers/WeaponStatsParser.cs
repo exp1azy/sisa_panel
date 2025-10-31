@@ -5,9 +5,9 @@ using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class WeaponStatsParser(IBrowsingContext context) : BaseParser<WeaponStats>(context)
+    internal class WeaponStatsParser(IBrowsingContext context) : IParsable<WeaponStats>
     {
-        public override async Task<WeaponStats> ParseAsync(string html)
+        public async Task<WeaponStats> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
 

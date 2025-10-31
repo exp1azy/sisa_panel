@@ -5,9 +5,9 @@ using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class HumanTopPlayersParser(IBrowsingContext context) : BaseParser<HumanTopPlayersStat>(context)
+    internal class HumanTopPlayersParser(IBrowsingContext context) : IParsable<HumanTopPlayersStat>
     {
-        public override async Task<HumanTopPlayersStat> ParseAsync(string html)
+        public async Task<HumanTopPlayersStat> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
 

@@ -4,7 +4,7 @@ namespace Sisa.Panel.Responses
 {
     public class BanList
     {
-        public IList<BanEntry> Bans { get; set; }
+        public IReadOnlyList<BanEntry> Bans { get; set; }
 
         public int TotalBans { get; set; }
 

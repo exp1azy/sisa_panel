@@ -1,35 +1,29 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
 using Sisa.Panel.Models.Stat;
-using Sisa.Panel.Responses;
 using System.Globalization;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class PlayerStatsParser(IBrowsingContext context) : BaseParser<PlayerStats>(context)
+    internal partial class PlayerStatsParser(IBrowsingContext context) : IParsable<IReadOnlyList<PlayerStatEntry>>
     {
-        public override async Task<PlayerStats> ParseAsync(string html)
+        public async Task<IReadOnlyList<PlayerStatEntry>> ParseAsync(string html)
         {
-            var document = await Context.OpenAsync(req => req.Content(html));
-
-            var stats = new PlayerStats
-            {
-                Stats = []
-            };
-
+            var document = await context.OpenAsync(req => req.Content(html));
             var table = document.QuerySelector("table.table-bordered.table-condensed");
 
-            if (table == null) 
-                return stats;
+            if (table == null)
+                return [];
 
             var rows = table.QuerySelectorAll("tbody tr");
+            var stats = new List<PlayerStatEntry>();
 
             foreach (var row in rows)
             {
                 var player = ParsePlayerRow(row);
 
                 if (player != null)
-                    stats.Stats.Add(player);
+                    stats.Add(player);
             }
 
             return stats;
