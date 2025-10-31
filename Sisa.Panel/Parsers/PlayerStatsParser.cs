@@ -1,26 +1,41 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
+using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Stat;
 using System.Globalization;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class PlayerStatsParser(IBrowsingContext context) : IParsable<IReadOnlyList<PlayerStatEntry>>
+    internal partial class PlayerStatsParser(IBrowsingContext context) : IParser<IReadOnlyList<PlayerStatEntry>>
     {
         public async Task<IReadOnlyList<PlayerStatEntry>> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
-            var table = document.QuerySelector("table.table-bordered.table-condensed");
+            var stats = new List<PlayerStatEntry>();
 
+            var table = document.QuerySelector("table.table-bordered.table-condensed");
             if (table == null)
                 return [];
 
-            var rows = table.QuerySelectorAll("tbody tr");
-            var stats = new List<PlayerStatEntry>();
-
-            foreach (var row in rows)
+            foreach (var row in table.GetTableRows())
             {
-                var player = ParsePlayerRow(row);
+                var cells = row.GetTableCells();
+                if (cells.Length < 10) return [];
+
+                var player = new PlayerStatEntry()
+                {
+                    RatingPosition = ParseRatingPosition(cells[0]),
+                    Country = ParseCountry(cells[1]),
+                    Name = ParseName(cells[1]),
+                    Level = ParseLevel(cells[2]),
+                    Exp = ParseExp(cells[3]),
+                    ZmKills = ParseZombieKills(cells[4]),
+                    Assists = ParseAssists(cells[5]),
+                    Deaths = ParseDeaths(cells[6]),
+                    KillDeathRatio = ParseKD(cells[7]),
+                    MVPs = ParseMVPs(cells[8]),
+                    Knife = ParseKnife(cells[9])
+                };
 
                 if (player != null)
                     stats.Add(player);
@@ -29,32 +44,9 @@ namespace Sisa.Panel.Parsers
             return stats;
         }
 
-        private static PlayerStatEntry ParsePlayerRow(IElement row)
-    {
-            var cells = row.QuerySelectorAll("td").ToArray();
-            if (cells.Length < 10) return null;
-
-            var player = new PlayerStatEntry()
-            {
-                RatingPosition = ParseRatingPosition(cells[0]),
-                Country = ParseCountry(cells[1]),
-                Name = ParseName(cells[1]),
-                Level = ParseLevel(cells[2]),
-                Exp = ParseExp(cells[3]),
-                ZombieKills = ParseZombieKills(cells[4]),
-                Assists = ParseAssists(cells[5]),
-                Deaths = ParseDeaths(cells[6]),
-                KD = ParseKD(cells[7]),
-                MVPs = ParseMVPs(cells[8]),
-                Knife = ParseKnife(cells[9])
-            };
-
-            return player;
-        }
-
         private static int ParseRatingPosition(IElement cell)
         {
-            var positionStr = cell.TextContent?.Trim();
+            var positionStr = cell.GetTextContent();
             _ = int.TryParse(positionStr, out int position);
 
             return position;
@@ -70,16 +62,14 @@ namespace Sisa.Panel.Parsers
 
         private static string ParseName(IElement cell)
         {
-            var textContent = cell.TextContent?.Trim();
-            var playerName = PlayerNameRegex().Replace(textContent, " ").Trim();
-
-            return playerName;
+            var textContent = cell.GetTextContent();
+            return PlayerNameRegex().Replace(textContent, " ").Trim();
         }
 
         private static int ParseLevel(IElement cell)
         {
             var levelSpan = cell.QuerySelector("span.lvlx");
-            var levelText = levelSpan.TextContent?.Trim();
+            var levelText = levelSpan.GetTextContent();
             _ = int.TryParse(levelText, out int level);
             
             return level;
@@ -91,9 +81,9 @@ namespace Sisa.Panel.Parsers
             string? exp;
 
             if (expSpan != null)
-                exp = expSpan.TextContent?.Trim();
+                exp = expSpan.GetTextContent();
             else
-                exp = cell.TextContent?.Trim();
+                exp = cell.GetTextContent();
 
             _ = int.TryParse(exp, out int expValue);
             return expValue;
@@ -105,9 +95,9 @@ namespace Sisa.Panel.Parsers
             string? killsStr;
 
             if (killsSpan != null)
-                killsStr = killsSpan.TextContent?.Trim();
+                killsStr = killsSpan.GetTextContent();
             else
-                killsStr = cell.TextContent?.Trim();
+                killsStr = cell.GetTextContent();
 
             _ = int.TryParse(killsStr, out int zombieKills);
             return zombieKills;
@@ -119,9 +109,9 @@ namespace Sisa.Panel.Parsers
             string? assistsStr;
 
             if (assistsSpan != null)
-                assistsStr = assistsSpan.TextContent?.Trim();
+                assistsStr = assistsSpan.GetTextContent();
             else
-                assistsStr = cell.TextContent?.Trim();
+                assistsStr = cell.GetTextContent();
 
             _ = int.TryParse(assistsStr, out int assists);
             return assists;
@@ -133,9 +123,9 @@ namespace Sisa.Panel.Parsers
             string? deathsStr;
 
             if (deathsSpan != null)
-                deathsStr = deathsSpan.TextContent?.Trim();
+                deathsStr = deathsSpan.GetTextContent();
             else
-                deathsStr = cell.TextContent?.Trim();
+                deathsStr = cell.GetTextContent();
 
             _ = int.TryParse(deathsStr, out int deaths);
            return deaths;
@@ -147,9 +137,9 @@ namespace Sisa.Panel.Parsers
             string? kdStr;
 
             if (kdSpan != null)
-                kdStr = kdSpan.TextContent?.Trim();
+                kdStr = kdSpan.GetTextContent();
             else
-                kdStr = cell.TextContent?.Trim();
+                kdStr = cell.GetTextContent();
 
             _ = float.TryParse(kdStr, NumberStyles.Float, CultureInfo.InvariantCulture, out float kd);
             return kd;
@@ -161,9 +151,9 @@ namespace Sisa.Panel.Parsers
             string? mvpsStr;
 
             if (mvpsSpan != null)
-                mvpsStr = mvpsSpan.TextContent?.Trim();
+                mvpsStr = mvpsSpan.GetTextContent();
             else
-                mvpsStr = cell.TextContent?.Trim();
+                mvpsStr = cell.GetTextContent();
 
             _ = int.TryParse(mvpsStr, out int mvps);
             return mvps;
@@ -172,9 +162,7 @@ namespace Sisa.Panel.Parsers
         private static string ParseKnife(IElement cell)
         {
             var knifeImg = cell.QuerySelector("img");
-            var title = knifeImg.GetAttribute("title");
-            
-            return title;
+            return knifeImg.GetAttribute("title");
         }
 
         [System.Text.RegularExpressions.GeneratedRegex(@"\s+")]

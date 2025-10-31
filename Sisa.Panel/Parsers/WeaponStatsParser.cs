@@ -1,118 +1,81 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
+using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Stat;
-using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class WeaponStatsParser(IBrowsingContext context) : IParsable<WeaponStats>
+    internal class WeaponStatsParser(IBrowsingContext context) : IParser<IReadOnlyList<WeaponStatsEntry>>
     {
-        public async Task<WeaponStats> ParseAsync(string html)
+        public async Task<IReadOnlyList<WeaponStatsEntry>> ParseAsync(string htmlContent)
         {
-            var document = await context.OpenAsync(req => req.Content(html));
+            var document = await context.OpenAsync(req => req.Content(htmlContent));
 
-            var tables = document.QuerySelectorAll("table.table-bordered");
-            if (tables.Length == 0) return new();
+            var entries = new List<WeaponStatsEntry>();
+            var table = document.QuerySelector("table.table.table-bordered.table-condensed.table-hover.table-responsive.sortable");
 
-            var weaponStats = new WeaponStats
+            if (table == null)
+                return entries.AsReadOnly();
+
+            foreach (var row in table.GetTableRows())
             {
-                Weapons = ParseWeaponsTable(tables[0]),
-                ModWeapons = ParseModWeaponsTable(tables[1])
-            };
+                var cells = row.GetTableCells();
 
-            return weaponStats;
-        }
-
-        private static List<WeaponEntry> ParseWeaponsTable(IElement table)
-        {
-            var weapons = new List<WeaponEntry>();
-
-            var rows = table.QuerySelectorAll("tbody tr");
-            foreach (var row in rows)
-            {
-                var cells = row.QuerySelectorAll("td");
-                if (cells.Length >= 13)
+                if (cells.Length >= 12)
                 {
-                    var weapon = new WeaponEntry
+                    var entry = new WeaponStatsEntry
                     {
-                        Name = GetTextContent(cells[1]),
-                        Shots = ParseInt(GetTextContent(cells[2])),
-                        ZombieKills = ParseInt(GetTextContent(cells[3])),
-                        ZombieDamage = ParseLong(GetTextContent(cells[4])),
-                        Hits = ParseInt(GetTextContent(cells[5])),
-                        Assists = ParseInt(GetTextContent(cells[6])),
-                        MVPs = ParseInt(GetTextContent(cells[7])),
-                        Levels = ParseInt(GetTextContent(cells[8])),
-                        BossDamage = ParseInt(GetTextContent(cells[9])),
-                        BossKills = ParseInt(GetTextContent(cells[10])),
-                        AvailableFromLevel = ParseInt(GetTextContent(cells[11])),
-                        Cost = ParseInt(GetTextContent(cells[12])),
-                        Ratio = ParseInt(GetTextContent(cells[13]))
+                        RatingPosition = ParseInt(cells[0].GetTextContent())
                     };
 
-                    weapons.Add(weapon);
+                    var flagImg = cells[1].QuerySelector("img");
+                    var src = flagImg.GetAttribute("alt") ?? "";
+                    entry.Country = src.Trim();
+
+                    var link = cells[1].QuerySelector("a");
+                    entry.Name = link.GetTextContent();
+
+                    entry.Shots = ParseInt(GetSpanTitleValue(cells[2], "Выстрелов"));
+                    entry.Hits = ParseInt(GetSpanTitleValue(cells[3], "Попаданий"));
+
+                    var progressDiv = cells[4].QuerySelector("div.taskProgress");
+                    var accuracyText = progressDiv.GetTextContent();
+                    _ = int.TryParse(accuracyText, out int accuracy);
+                    entry.Accuracy = accuracy;
+
+                    entry.ZmKills = ParseInt(GetSpanTitleValue(cells[5], "Убийств Зомби"));
+                    entry.ZmDamage = ParseInt(GetSpanTitleValue(cells[6], "Урон (ЗМ)"));
+                    entry.Assists = ParseInt(GetSpanTitleValue(cells[7], "Ассистов"));
+                    entry.MVPs = ParseInt(GetSpanTitleValue(cells[8], "Лучший игрок"));
+                    entry.Levels = ParseInt(GetSpanTitleValue(cells[9], "Уровней"));
+                    entry.BossDamage = ParseInt(GetSpanTitleValue(cells[10], "Урон (босс)"));
+                    entry.BossKills = ParseInt(GetSpanTitleValue(cells[11], "Убийств босса"));
+
+                    if (entry != null)
+                        entries.Add(entry);
                 }
             }
 
-            return weapons;
+            return entries.AsReadOnly();
         }
 
-        private static List<ModWeaponEntry> ParseModWeaponsTable(IElement table)
+        private static string GetSpanTitleValue(IElement cell, string title)
         {
-            var modWeapons = new List<ModWeaponEntry>();
-
-            var rows = table.QuerySelectorAll("tbody tr");
-            foreach (var row in rows)
-            {
-                var cells = row.QuerySelectorAll("td");
-                if (cells.Length >= 10)
-                {
-                    var belongsTo = DetermineBelongsTo(cells[0]);
-
-                    var modWeapon = new ModWeaponEntry
-                    {
-                        BelongsTo = belongsTo,
-                        Name = GetTextContent(cells[2]),
-                        Shots = ParseInt(GetTextContent(cells[3])),
-                        ZombieKills = ParseInt(GetTextContent(cells[4])),
-                        ZombieDamage = ParseLong(GetTextContent(cells[5])),
-                        Hits = ParseInt(GetTextContent(cells[6])),
-                        Assists = ParseInt(GetTextContent(cells[7])),
-                        MVPs = ParseInt(GetTextContent(cells[8])),
-                        Levels = ParseInt(GetTextContent(cells[9])),
-                        Ratio = ParseInt(GetTextContent(cells[10]))
-                    };
-
-                    modWeapons.Add(modWeapon);
-                }
-            }
-
-            return modWeapons;
-        }
-
-        private static string DetermineBelongsTo(IElement cell)
-        {
-            var img = cell.QuerySelector("img");
-            var src = img.GetAttribute("title");
-            return src ?? "Unknown";
-        }
-
-        private static string GetTextContent(IElement element)
-        {
-            var span = element.QuerySelector("span");
-            return span?.TextContent.Trim() ?? element.TextContent.Trim();
+            var span = cell.QuerySelector($"span[title='{title}']");
+            return span?.GetTextContent() ?? cell.GetTextContent();
         }
 
         private static int ParseInt(string value)
         {
-            if (string.IsNullOrWhiteSpace(value) || value == "-") return 0;
-            return int.TryParse(value.Replace(" ", ""), out int result) ? result : 0;
-        }
+            if (string.IsNullOrWhiteSpace(value))
+                return 0;
 
-        private static long ParseLong(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value) || value == "-") return 0;
-            return long.TryParse(value.Replace(" ", ""), out long result) ? result : 0;
+            value = value.Replace(" ", "").Replace(",", "");
+
+            if (int.TryParse(value, out int result))
+                return result;
+
+            return 0;
         }
     }
 }

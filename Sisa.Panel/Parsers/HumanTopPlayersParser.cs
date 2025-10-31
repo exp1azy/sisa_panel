@@ -1,11 +1,12 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
+using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Stat;
 using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class HumanTopPlayersParser(IBrowsingContext context) : IParsable<HumanTopPlayersStat>
+    internal class HumanTopPlayersParser(IBrowsingContext context) : IParser<HumanTopPlayersStat>
     {
         public async Task<HumanTopPlayersStat> ParseAsync(string html)
         {
@@ -156,10 +157,26 @@ namespace Sisa.Panel.Parsers
                 var table = section.QuerySelector("table.sortable");
                 if (table != null)
                 {
-                    var rows = table.QuerySelectorAll("tbody tr");
-                    foreach (var row in rows)
+                    foreach (var row in table.GetTableRows())
                     {
-                        var player = ParsePlayer(row);
+                        var cells = row.GetTableCells();
+                        if (cells.Length < 6) return null;
+
+                        var player = new HumanTopPlayerEntry
+                        {
+                            RatingPosition = ParseCellValueInt(row, 0),
+                            Name = ParsePlayerName(cells[1]),
+                            Country = ParseCountry(cells[1]),
+                            ZombieKills = ParseCellValueInt(row, 2),
+                            Damage = ParseCellValueLong(row, 3),
+                            Deaths = ParseCellValueInt(row, 5),
+                            Games = ParseCellValueInt(row, 6),
+                            WasInfected = ParseCellValueInt(row, 4)
+                        };
+
+                        player.Games = player.Games == 0 ? null : player.Games;
+                        player.WasInfected = player.WasInfected == 0 ? null : player.WasInfected;
+
                         players.Add(player);
                     }
                 }
@@ -168,35 +185,12 @@ namespace Sisa.Panel.Parsers
             return players.ToArray();
         }
 
-        private static HumanTopPlayerEntry ParsePlayer(IElement row)
-        {
-            var cells = row.QuerySelectorAll("td");
-            if (cells.Length < 6) return null;
-
-            var player = new HumanTopPlayerEntry
-            {
-                RatingPosition = ParseCellValueInt(row, 0),
-                Name = ParsePlayerName(cells[1]),
-                Country = ParseCountry(cells[1]),
-                ZombieKills = ParseCellValueInt(row, 2),
-                Damage = ParseCellValueLong(row, 3),
-                Deaths = ParseCellValueInt(row, 5),
-                Games = ParseCellValueInt(row, 6),
-                WasInfected = ParseCellValueInt(row, 4)
-            };
-
-            player.Games = player.Games == 0 ? null : player.Games;
-            player.WasInfected = player.WasInfected == 0 ? null : player.WasInfected;
-
-            return player;
-        }
-
         private static long ParseCellValueLong(IElement row, int cellIndex)
         {
-            var cells = row.QuerySelectorAll("td");
+            var cells = row.GetTableCells();
             if (cells.Length > cellIndex)
             {
-                var text = cells[cellIndex].TextContent.Trim();
+                var text = cells[cellIndex].GetTextContent();
 
                 if (long.TryParse(text, out long value))
                     return value;
@@ -207,10 +201,10 @@ namespace Sisa.Panel.Parsers
 
         private static int ParseCellValueInt(IElement row, int cellIndex)
         {
-            var cells = row.QuerySelectorAll("td");
+            var cells = row.GetTableCells();
             if (cells.Length > cellIndex)
             {
-                var text = cells[cellIndex].TextContent.Trim();
+                var text = cells[cellIndex].GetTextContent();
 
                 if (int.TryParse(text, out int value))
                     return value;
@@ -227,7 +221,7 @@ namespace Sisa.Panel.Parsers
 
             if (propertyRow != null)
             {
-                var valueCell = propertyRow.QuerySelectorAll("td")[index].TextContent.Split(' ')[1];
+                var valueCell = propertyRow.GetTableCells()[index].TextContent.Split(' ')[1];
 
                 if (valueCell != null && int.TryParse(valueCell.Trim(), out int value))
                     return value;
@@ -246,7 +240,7 @@ namespace Sisa.Panel.Parsers
             {
                 var valueCell = statRow.QuerySelector("td:last-child");
 
-                if (valueCell != null && int.TryParse(valueCell.TextContent.Trim(), out int value))
+                if (valueCell != null && int.TryParse(valueCell.GetTextContent(), out int value))
                     return value;
             }
 
@@ -262,7 +256,7 @@ namespace Sisa.Panel.Parsers
             {
                 var valueCell = statRow.QuerySelector("td:last-child");
 
-                if (valueCell != null && long.TryParse(valueCell.TextContent.Trim(), out long value))
+                if (valueCell != null && long.TryParse(valueCell.GetTextContent(), out long value))
                     return value;
             }
 
@@ -272,7 +266,7 @@ namespace Sisa.Panel.Parsers
         private static string ParsePlayerName(IElement cell)
         {
             var link = cell.QuerySelector("a");
-            return link?.TextContent.Trim() ?? cell.TextContent.Trim();
+            return link?.GetTextContent() ?? cell.GetTextContent();
         }
 
         private static string ParseCountry(IElement element)

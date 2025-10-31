@@ -1,42 +1,35 @@
 ﻿using AngleSharp;
-using AngleSharp.Dom;
+using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.AdminList;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class AdminListParser(IBrowsingContext context) : IParsable<IReadOnlyList<AdminInfo>>
+    internal class AdminListParser(IBrowsingContext context) : IParser<IReadOnlyList<AdminInfo>>
     {
         public async Task<IReadOnlyList<AdminInfo>> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
-            return ParseAdminInfos(document);
-        }
-
-        private static List<AdminInfo> ParseAdminInfos(IDocument document)
-        {
             var adminsList = new List<AdminInfo>();
-            var adminBlocks = document.QuerySelectorAll("div.smallstat.box");
 
-            foreach (var block in adminBlocks)
+            foreach (var block in document.QuerySelectorAll("div.smallstat.box"))
             {
                 var adminInfo = new AdminInfo();
 
-                var nameLink = block.QuerySelector("a[href^='http://steamcommunity.com/profiles/']");
+                var nameLink = block.GetSteamProfileElement();
                 if (nameLink != null)
                 {
-                    adminInfo.AdminName = nameLink.TextContent.Trim();
+                    adminInfo.AdminName = nameLink.TextContent;
                     adminInfo.SteamProfile = nameLink.GetAttribute("href") ?? string.Empty;
                 }
 
                 var statusElement = block.QuerySelector("span.label");
-
                 if (statusElement != null)
-                    adminInfo.Status = statusElement.TextContent.Trim();
+                    adminInfo.Status = statusElement.TextContent;
 
                 adminsList.Add(adminInfo);
             }
 
             return adminsList;
-        } 
+        }
     }
 }

@@ -1,35 +1,31 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
+using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Clans;
 using Sisa.Panel.Responses;
-using System.Globalization;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class ClanInfoParser(IBrowsingContext context) : IParsable<ClanInfo>
+    internal class ClanInfoParser(IBrowsingContext context) : IParser<ClanInfo>
     {
         public async Task<ClanInfo> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
 
-            var clanInfo = new ClanInfo
+            return new ClanInfo
             {
                 GeneralInfo = ParseGeneralInfo(document),
                 LastActions = ParseLastActions(document),
                 Members = ParseMembers(document)
             };
-
-            return clanInfo;
         }
 
         private static ClanGeneralInfo ParseGeneralInfo(IDocument document)
         {
             var generalInfo = new ClanGeneralInfo();
-
             var actions = new List<string>();
-            var spans = document.QuerySelectorAll("span");
 
-            foreach (var span in spans)
+            foreach (var span in document.QuerySelectorAll("span"))
             {
                 if (string.IsNullOrEmpty(span.ClassName))
                     continue;
@@ -50,7 +46,7 @@ namespace Sisa.Panel.Parsers
             generalInfo.Actions = actions;
 
             var stats = document.QuerySelectorAll(".smallstat .value.count");
-            var statValues = stats.Select(s => s.TextContent?.Trim()).ToArray();
+            var statValues = stats.Select(s => s.GetTextContent()).ToArray();
 
             if (statValues.Length >= 9)
             {
@@ -92,11 +88,9 @@ namespace Sisa.Panel.Parsers
             var actionTable = document.QuerySelector("table.table-condensed");
             if (actionTable == null) return actions;
 
-            var rows = actionTable.QuerySelectorAll("tbody tr");
-
-            foreach (var row in rows)
+            foreach (var row in actionTable.GetTableRows())
             {
-                var cells = row.QuerySelectorAll("td").ToArray();
+                var cells = row.GetTableCells();
                 if (cells.Length >= 4)
                 {
                     var actionEntry = new ClanLastActionEntry();
@@ -110,11 +104,10 @@ namespace Sisa.Panel.Parsers
                     if (actionIcon != null)
                         actionEntry.Action = GetActionTypeFromIcon(actionIcon.ClassList);
 
-                    actionEntry.Member = cells[2]?.TextContent?.Trim();
-                    var dateText = cells[3]?.TextContent?.Trim();
+                    actionEntry.Member = cells[2].GetTextContent();
 
-                    if (DateOnly.TryParseExact(dateText, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date))
-                        actionEntry.Date = date;
+                    var dateText = cells[3].GetTextContent();
+                    actionEntry.Date = dateText.ParseToDateOnly();
 
                     actions.Add(actionEntry);
                 }
@@ -149,17 +142,15 @@ namespace Sisa.Panel.Parsers
             var memberTable = document.QuerySelectorAll("table.table-condensed").LastOrDefault();
             if (memberTable == null) return members;
 
-            var rows = memberTable.QuerySelectorAll("tbody tr");
-
-            foreach (var row in rows)
+            foreach (var row in memberTable.GetTableRows())
             {
-                var cells = row.QuerySelectorAll("td").ToArray();
+                var cells = row.GetTableCells();
                 if (cells.Length >= 5)
                 {
                     var member = new ClanPlayerEntry();
 
                     var nameCell = cells[1];
-                    member.Name = nameCell.TextContent?.Trim();
+                    member.Name = nameCell.GetTextContent();
 
                     var adminIcon = nameCell.QuerySelector("i.fa-star");
                     member.IsAdmin = adminIcon != null;
@@ -170,17 +161,16 @@ namespace Sisa.Panel.Parsers
                     var levelSpan = cells[2].QuerySelector("span.lvlx");
                     if (levelSpan != null)
                     {
-                        var levelText = levelSpan.TextContent?.Trim();
+                        var levelText = levelSpan.GetTextContent();
 
                         if (int.TryParse(levelText, out int level))
                             member.Level = level;
                     }
 
-                    member.Online = cells[3]?.TextContent?.Trim();
+                    member.Online = cells[3].GetTextContent();
 
-                    var lastActivityText = cells[4]?.TextContent?.Trim();
-                    if (DateTime.TryParseExact(lastActivityText, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime lastActivity))
-                        member.LastActivity = lastActivity;
+                    var lastActivityText = cells[4].GetTextContent();
+                    member.LastActivity = lastActivityText.ParseToDateTime();
 
                     members.Add(member);
                 }

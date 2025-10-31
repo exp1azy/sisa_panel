@@ -1,17 +1,18 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
+using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Live;
 using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class LiveStatusParser(IBrowsingContext context) : IParsable<ServerLiveStatus>
+    internal partial class LiveStatusParser(IBrowsingContext context) : IParser<ServerLiveStatus>
     {
         public async Task<ServerLiveStatus> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
 
-            var liveStatus = new ServerLiveStatus
+            return new ServerLiveStatus
             {
                 Status = ParseServerStatus(document),
                 Players = ParsePlayers(document),
@@ -19,32 +20,31 @@ namespace Sisa.Panel.Parsers
                 Statistics = ParseStatistics(document),
                 PreviousMaps = ParsePreviousMaps(document)
             };
-
-            return liveStatus;
         }
 
         private static ServerStatus ParseServerStatus(IDocument document)
         {
             var status = new ServerStatus();
-            var serverInfoRows = document.QuerySelectorAll("table.table-condensed tbody tr");
 
-            foreach (var row in serverInfoRows)
+            var table = document.QuerySelector("table.table-condensed");
+            if (table == null)
+                return status;
+
+            foreach (var row in table.GetTableRows())
             {
-                var cells = row.QuerySelectorAll("td").ToArray();
+                var cells = row.GetTableCells();
                 if (cells.Length >= 2)
                 {
-                    var key = cells[0].TextContent.Trim();
-
-                    switch (key)
+                    switch (cells[0].GetTextContent())
                     {
                         case "Карта":
-                            status.CurrentMap = cells[1].TextContent.Trim();
+                            status.CurrentMap = cells[1].GetTextContent();
                             break;
                         case "Текущий мод":
-                            status.CurrentMod = cells[1].TextContent.Trim();
+                            status.CurrentMod = cells[1].GetTextContent();
                             break;
                         case "Игроков":
-                            var playerText = cells[2].TextContent.Trim();
+                            var playerText = cells[2].GetTextContent();
                             var playerMatch = TimeLeftRegex().Match(playerText);
 
                             if (playerMatch.Success)
@@ -55,12 +55,12 @@ namespace Sisa.Panel.Parsers
                             break;
                         case "Осталось времени":
                             if (cells.Length < 3)
-                                status.TimeLeft = cells[1].TextContent.Trim();
+                                status.TimeLeft = cells[1].GetTextContent();
                             else
-                                status.TimeLeft = cells[2].TextContent.Trim();
+                                status.TimeLeft = cells[2].GetTextContent();
                             break;
                         case "Босс-раунд":
-                            status.BossRoundAvailable = cells[1].TextContent.Trim() == "Доступен";
+                            status.BossRoundAvailable = cells[1].GetTextContent() == "Доступен";
                             break;
                     }
                 }
@@ -72,14 +72,17 @@ namespace Sisa.Panel.Parsers
         private static List<PlayerLiveInfo> ParsePlayers(IDocument document)
         {
             var players = new List<PlayerLiveInfo>();
-            var playerRows = document.QuerySelectorAll("#scoreboard table tbody tr");
 
-            foreach (var row in playerRows)
+            var table = document.QuerySelector("#scoreboard table");
+            if (table == null)
+                return players;
+
+            foreach (var row in table.GetTableRows())
             {
                 if (row.ClassList.Contains("zombie_head") || row.ClassList.Contains("humans_head"))
                     continue;
 
-                var cells = row.QuerySelectorAll("td").ToArray();
+                var cells = row.GetTableCells();
                 if (cells.Length >= 7)
                 {
                     var player = new PlayerLiveInfo();
@@ -98,11 +101,11 @@ namespace Sisa.Panel.Parsers
                     var nameLink = playerCell.QuerySelector("a");
 
                     if (nameLink != null)
-                        player.PlayerName = nameLink.TextContent.Trim();
+                        player.PlayerName = nameLink.GetTextContent();
 
-                    player.SteamId = cells[1].TextContent.Trim();
+                    player.SteamId = cells[1].GetTextContent();
 
-                    var fragsText = cells[2].TextContent.Trim();
+                    var fragsText = cells[2].GetTextContent();
                     var fragsMatch = FragsCountRegex().Match(fragsText);
 
                     if (fragsMatch.Success)
@@ -111,9 +114,9 @@ namespace Sisa.Panel.Parsers
                         player.Deaths = int.Parse(fragsMatch.Groups[2].Value);
                     }
 
-                    player.PlayTime = cells[4].TextContent.Trim();
+                    player.PlayTime = cells[4].GetTextContent();
 
-                    if (int.TryParse(cells[5].TextContent.Trim(), out int ping))
+                    if (int.TryParse(cells[5].GetTextContent(), out int ping))
                         player.Ping = ping;
 
                     var levelElement = cells[6].QuerySelector("span.lvlx");
@@ -135,11 +138,10 @@ namespace Sisa.Panel.Parsers
         private static List<TeamSummary> ParseTeams(IDocument document)
         {
             var teams = new List<TeamSummary>();
-            var teamHeaders = document.QuerySelectorAll("#scoreboard table tbody tr.zombie_head, #scoreboard table tbody tr.humans_head");
 
-            foreach (var header in teamHeaders)
+            foreach (var header in document.QuerySelectorAll("#scoreboard table tbody tr.zombie_head, #scoreboard table tbody tr.humans_head"))
             {
-                var cells = header.QuerySelectorAll("td").ToArray();
+                var cells = header.GetTableCells();
                 if (cells.Length >= 3)
                 {
                     var teamSummary = new TeamSummary();
@@ -149,13 +151,13 @@ namespace Sisa.Panel.Parsers
                     else if (header.ClassList.Contains("humans_head"))
                         teamSummary.Team = PlayerTeam.Human;
 
-                    var teamText = cells[0].TextContent.Trim();
+                    var teamText = cells[0].GetTextContent();
                     var playerCountMatch = PlayerCountRegex().Match(teamText);
 
                     if (playerCountMatch.Success)
                         teamSummary.PlayerCount = int.Parse(playerCountMatch.Groups[1].Value);
 
-                    var roundsText = cells[1].TextContent.Trim();
+                    var roundsText = cells[1].GetTextContent();
 
                     if (int.TryParse(roundsText, out int rounds))
                         teamSummary.WonRounds = rounds;
@@ -171,18 +173,16 @@ namespace Sisa.Panel.Parsers
         {
             var statistics = new ServerStatistics
             {
-                HourlyActivity = new Dictionary<string, int>(),
-                MonthlyActivity = new Dictionary<string, int>()
+                HourlyActivity = [],
+                MonthlyActivity = []
             };
 
-            var scriptElements = document.QuerySelectorAll("script");
-            foreach (var script in scriptElements)
+            foreach (var script in document.QuerySelectorAll("script"))
             {
                 var scriptContent = script.TextContent;
                 if (scriptContent.Contains("chart3Dat") && scriptContent.Contains("data :"))
                 {
-                    var matches = ActivityRegex().Matches(scriptContent);
-                    foreach (System.Text.RegularExpressions.Match match in matches)
+                    foreach (System.Text.RegularExpressions.Match match in ActivityRegex().Matches(scriptContent))
                     {
                         if (match.Groups.Count == 3)
                         {
@@ -204,9 +204,7 @@ namespace Sisa.Panel.Parsers
 
                 if (scriptContent.Contains("chart4Dat") && scriptContent.Contains("data:"))
                 {
-                    var matches = ActivityRegex().Matches(scriptContent);
-
-                    foreach (System.Text.RegularExpressions.Match match in matches)
+                    foreach (System.Text.RegularExpressions.Match match in ActivityRegex().Matches(scriptContent))
                     {
                         if (match.Groups.Count == 3)
                         {
@@ -223,11 +221,10 @@ namespace Sisa.Panel.Parsers
         private static List<string> ParsePreviousMaps(IDocument document)
         {
             var previousMaps = new List<string>();
-            var mapElements = document.QuerySelectorAll("#lastm .box-content .title");
 
-            foreach (var mapElement in mapElements)
+            foreach (var mapElement in document.QuerySelectorAll("#lastm .box-content .title"))
             {
-                var mapName = mapElement.TextContent.Trim();
+                var mapName = mapElement.GetTextContent();
 
                 if (!string.IsNullOrEmpty(mapName))
                     previousMaps.Add(mapName);

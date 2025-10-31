@@ -1,12 +1,13 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
+using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Stat;
 using Sisa.Panel.Responses;
 using System.Globalization;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class PlayerInfoParser(IBrowsingContext context) : IParsable<PlayerInfo>
+    internal partial class PlayerInfoParser(IBrowsingContext context) : IParser<PlayerInfo>
     {
         public async Task<PlayerInfo> ParseAsync(string html)
         {
@@ -42,10 +43,10 @@ namespace Sisa.Panel.Parsers
                         generalInfo.Country = altText;
                 }
 
-                var nickText = nickValueElement.TextContent.Trim();
+                var nickText = nickValueElement.GetTextContent();
                 if (!string.IsNullOrEmpty(nickText))
                 {
-                    var nickAndTag = NickTextRegex().Replace(nickText, "").Trim().Split('|');
+                    var nickAndTag = NickTextRegex().Replace(nickText, "").Split('|');
                     if (nickAndTag.Length == 2)
                     {
                         generalInfo.Tag = nickAndTag[0].Trim();
@@ -62,57 +63,48 @@ namespace Sisa.Panel.Parsers
             if (steamLink != null)
             {
                 generalInfo.SteamProfileUrl = steamLink.GetAttribute("href");
-                generalInfo.SteamProfileName = steamLink.TextContent.Trim();
+                generalInfo.SteamProfileName = steamLink.GetTextContent();
                 var steamIdMatch = SteamIdRegex().Match(generalInfo.SteamProfileUrl);
 
                 if (steamIdMatch.Success)
                     generalInfo.SteamId = steamIdMatch.Groups[1].Value;
             }
 
-            var tableRows = document.QuerySelectorAll(".table-responsive tbody tr");
-            foreach (var row in tableRows)
+            var table = document.QuerySelector(".table-responsive");
+            if (table == null)
+                return generalInfo;
+
+            foreach (var row in table.GetTableRows())
             {
-                var cells = row.QuerySelectorAll("td");
+                var cells = row.GetTableCells();
                 if (cells.Length >= 2)
                 {
-                    var label = cells[0].TextContent.Trim();
-                    var value = cells[1].TextContent.Trim();
+                    var label = cells[0].GetTextContent();
+                    var value = cells[1].GetTextContent();
 
                     switch (label)
                     {
                         case "STEAM_ID":
                             if (string.IsNullOrEmpty(generalInfo.SteamId))
-                            {
                                 generalInfo.SteamId = value;
-                            }
                             break;
 
                         case "Заходил":
-                            if (DateTime.TryParseExact(value, "dd-MM-yyyy HH:mm:ss",
-                                CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime lastVisit))
-                            {
-                                generalInfo.LastVisitedAt = lastVisit;
-                            }
+                                generalInfo.LastVisitedAt = value.ParseToDateTime();
                             break;
 
                         case "Уровень":
                             var levelElement = row.QuerySelector(".lvlx");
-                            if (levelElement != null && int.TryParse(levelElement.TextContent.Trim(), out int level))
-                            {
+                            if (levelElement != null && int.TryParse(levelElement.GetTextContent(), out int level))
                                 generalInfo.Level = level;
-                            }
                             break;
 
                         case "Состоит в клане":
                             var clanLink = row.QuerySelector("a");
                             if (clanLink != null)
-                            {
-                                generalInfo.ClanMember = clanLink.TextContent.Trim();
-                            }
+                                generalInfo.ClanMember = clanLink.GetTextContent();
                             else
-                            {
                                 generalInfo.ClanMember = value;
-                            }
                             break;
 
                         case "Онлайн":
@@ -137,14 +129,13 @@ namespace Sisa.Panel.Parsers
             if (settingsTable == null)
                 return settings;
 
-            var rows = settingsTable.QuerySelectorAll("tbody tr");
-            foreach (var row in rows)
+            foreach (var row in settingsTable.GetTableRows())
             {
-                var cells = row.QuerySelectorAll("td");
+                var cells = row.GetTableCells();
                 if (cells.Length >= 2)
                 {
-                    var settingName = cells[0].TextContent.Trim();
-                    var settingValue = cells[1].TextContent.Trim();
+                    var settingName = cells[0].GetTextContent();
+                    var settingValue = cells[1].GetTextContent();
 
                     switch (settingName)
                     {
@@ -185,13 +176,12 @@ namespace Sisa.Panel.Parsers
             if (statsTable == null)
                 return stats;
 
-            var rows = statsTable.QuerySelectorAll("tbody tr");
-            foreach (var row in rows)
+            foreach (var row in statsTable.GetTableRows())
             {
-                var cells = row.QuerySelectorAll("td");
+                var cells = row.GetTableCells();
                 if (cells.Length >= 2)
                 {
-                    var label = cells[0].TextContent.Trim();
+                    var label = cells[0].GetTextContent();
                     var valueCell = cells.Length > 2 ? cells[2] : cells[1];
 
                     switch (label)
@@ -199,10 +189,7 @@ namespace Sisa.Panel.Parsers
                         case "Нож":
                             var knifeImg = row.QuerySelector("img");
                             if (knifeImg != null)
-                            {
-                                var title = knifeImg.GetAttribute("title");
-                                stats.Knife = title?.Replace("weapon_", "") ?? "Unknown";
-                            }
+                                stats.Knife = knifeImg.GetAttribute("title");
                             break;
 
                         case "EXP":
@@ -273,7 +260,7 @@ namespace Sisa.Panel.Parsers
                             break;
 
                         case "У/С":
-                            var kdText = valueCell.TextContent.Trim();
+                            var kdText = valueCell.GetTextContent();
                             if (decimal.TryParse(kdText, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal kdRatio))
                                 stats.KillDeathRatio = kdRatio;
                             break;
@@ -288,25 +275,23 @@ namespace Sisa.Panel.Parsers
         {
             var progress = new PlayerProgress();
 
-            var progressBlocks = document.QuerySelectorAll(".smallstat.box.mobileHalf.span6");
-            foreach (var block in progressBlocks)
+            foreach (var block in document.QuerySelectorAll(".smallstat.box.mobileHalf.span6"))
             {
                 var titleElement = block.QuerySelector(".title");
-                if (titleElement?.TextContent.Trim() != "Достижения")
+                if (titleElement?.GetTextContent() != "Достижения")
                     continue;
 
                 var table = block.QuerySelector(".table-responsive table");
                 if (table == null)
                     continue;
 
-                var rows = table.QuerySelectorAll("tbody tr");
-                foreach (var row in rows)
+                foreach (var row in table.GetTableRows())
                 {
-                    var cells = row.QuerySelectorAll("td");
+                    var cells = row.GetTableCells();
                     if (cells.Length < 2) continue;
 
-                    var label = cells[0].TextContent.Trim();
-                    var valueText = cells[1].TextContent.Trim();
+                    var label = cells[0].GetTextContent();
+                    var valueText = cells[1].GetTextContent();
                     var cleanValue = valueText.Replace(" ", "");
 
                     switch (label)
@@ -394,23 +379,19 @@ namespace Sisa.Panel.Parsers
             var weaponsContainer = document.QuerySelector("#wpnhour");
             if (weaponsContainer == null)
                 return tempWeapons;
-
-            var weaponCards = weaponsContainer.QuerySelectorAll(".span4[style*='border: 1px solid #ddd']");
-
-            foreach (var card in weaponCards)
+            
+            foreach (var card in weaponsContainer.QuerySelectorAll(".span4[style*='border: 1px solid #ddd']"))
             {
                 var weapon = new PlayerTempWeapon();
 
                 var labelElement = card.QuerySelector(".label");
                 if (labelElement != null)
-                {
                     weapon.Main = labelElement.ClassList.Contains("label-online");
-                }
 
                 var textSpan = card.QuerySelector(".row-fluid:last-child .span12");
                 if (textSpan != null)
                 {
-                    var fullText = textSpan.TextContent.Trim();
+                    var fullText = textSpan.GetTextContent();
                     fullText = fullText.Replace("&nbsp;", " ").Replace("\u00A0", " ").Trim();
 
                     var match = NameAndTimeRegex().Match(fullText);
@@ -436,15 +417,18 @@ namespace Sisa.Panel.Parsers
         {
             var weaponStats = new List<PlayerWeaponStatEntry>();
 
-            var weaponRows = document.QuerySelectorAll("#weapons table tbody tr");
-            foreach (var row in weaponRows)
+            var table = document.QuerySelector("#weapons table");
+            if (table == null)
+                return weaponStats;
+
+            foreach (var row in table.GetTableRows())
             {
-                var cells = row.QuerySelectorAll("td").ToList();
-                if (cells.Count >= 11)
+                var cells = row.GetTableCells();
+                if (cells.Length >= 11)
                 {
                     var weapon = new PlayerWeaponStatEntry
                     {
-                        Name = cells[1].TextContent.Trim(),
+                        Name = cells[1].GetTextContent(),
                         Shots = ParseIntFromSpan(cells[2]),
                         Hits = ParseIntFromSpan(cells[3]),
                         Accuracy = ParseIntFromProgress(cells[4]),
@@ -454,7 +438,7 @@ namespace Sisa.Panel.Parsers
                         MVPs = ParseIntFromSpan(cells[8]),
                         Levels = ParseIntFromSpan(cells[9]),
                         BossDamage = ParseIntFromSpan(cells[10]),
-                        BossKills = cells.Count > 11 ? ParseIntFromSpan(cells[11]) : 0
+                        BossKills = cells.Length > 11 ? ParseIntFromSpan(cells[11]) : 0
                     };
 
                     weaponStats.Add(weapon);
@@ -468,23 +452,26 @@ namespace Sisa.Panel.Parsers
         {
             var modWeaponStats = new List<PlayerModWeaponStatEntry>();
 
-            var modWeaponRows = document.QuerySelectorAll("#modweaps table tbody tr");
-            foreach (var row in modWeaponRows)
+            var table = document.QuerySelector("#modweaps table");
+            if (table == null)
+                return modWeaponStats;
+
+            foreach (var row in table.GetTableRows())
             {
-                var cells = row.QuerySelectorAll("td").ToList();
-                if (cells.Count >= 9)
+                var cells = row.GetTableCells();
+                if (cells.Length >= 9)
                 {
                     var weapon = new PlayerModWeaponStatEntry
                     {
                         Mod = GetModFromImage(cells[0]),
-                        Name = cells[2].TextContent.Trim(),
+                        Name = cells[2].GetTextContent(),
                         Shots = ParseIntFromSpan(cells[3]),
                         Hits = ParseIntFromSpan(cells[4]),
                         Accuracy = ParseIntFromProgress(cells[5]),
                         ZombieKills = ParseIntFromSpan(cells[6]),
                         ZombieDamage = ParseIntFromSpan(cells[7]),
                         Assists = ParseIntFromSpan(cells[8]),
-                        Levels = cells.Count > 9 ? ParseIntFromSpan(cells[9]) : 0
+                        Levels = cells.Length > 9 ? ParseIntFromSpan(cells[9]) : 0
                     };
 
                     modWeaponStats.Add(weapon);
@@ -498,11 +485,14 @@ namespace Sisa.Panel.Parsers
         {
             var zombieStats = new List<PlayerZombieStatEntry>();
 
-            var zombieRows = document.QuerySelectorAll("#zmstat tbody tr");
-            foreach (var row in zombieRows)
+            var table = document.QuerySelector("#zmstat");
+            if (table == null)
+                return zombieStats;
+
+            foreach (var row in table.GetTableRows())
             {
-                var cells = row.QuerySelectorAll("td").ToList();
-                if (cells.Count >= 10)
+                var cells = row.GetTableCells();
+                if (cells.Length >= 10)
                 {
                     var stat = new PlayerZombieStatEntry
                     {
@@ -515,7 +505,7 @@ namespace Sisa.Panel.Parsers
                         Deaths = ParseIntFromSpan(cells[6]),
                         Games = ParseIntFromSpan(cells[7]),
                         WasFirstZm = ParseIntFromSpan(cells[8]),
-                        Suicides = cells.Count > 9 ? ParseIntFromSpan(cells[9]) : 0
+                        Suicides = cells.Length > 9 ? ParseIntFromSpan(cells[9]) : 0
                     };
 
                     zombieStats.Add(stat);
@@ -537,22 +527,21 @@ namespace Sisa.Panel.Parsers
             if (grenadesContainer == null)
                 return grenades;
 
-            var grenadeBlocks = grenadesContainer.QuerySelectorAll(".span6");
-            foreach (var block in grenadeBlocks)
+            foreach (var block in grenadesContainer.QuerySelectorAll(".span6"))
             {
                 var grenade = new PlayerZombieGrenadesInfo();
 
                 var nameElement = block.QuerySelector(".charts-label1");
                 if (nameElement != null)
-                    grenade.Name = nameElement.TextContent.Trim();
+                    grenade.Name = nameElement.GetTextContent();
 
                 var valueElements = block.QuerySelectorAll(".value");
                 var labelElements = block.QuerySelectorAll("p[style*='font-size: 14px;color: #c7cbd5;']");
 
                 for (int i = 0; i < labelElements.Length; i++)
                 {
-                    var label = labelElements[i].TextContent.Trim();
-                    var valueText = i < valueElements.Length ? valueElements[i].TextContent.Trim() : "0";
+                    var label = labelElements[i].GetTextContent();
+                    var valueText = i < valueElements.Length ? valueElements[i].GetTextContent() : "0";
 
                     if (int.TryParse(valueText, out int value))
                     {
@@ -601,16 +590,6 @@ namespace Sisa.Panel.Parsers
             return 0;
         }
 
-        private static int ParseIntFromValue(IElement container, int index)
-        {
-            var values = container.QuerySelectorAll(".value");
-
-            if (values.Length > index && int.TryParse(values[index].TextContent, out int result))
-                return result;
-
-            return 0;
-        }
-
         private static string GetModFromImage(IElement cell)
         {
             var img = cell.QuerySelector("img");
@@ -643,9 +622,6 @@ namespace Sisa.Panel.Parsers
 
         [System.Text.RegularExpressions.GeneratedRegex(@"/(7656119\d+)/")]
         private static partial System.Text.RegularExpressions.Regex SteamIdRegex();
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"\s+")]
-        private static partial System.Text.RegularExpressions.Regex FullTextRegex();
 
         [System.Text.RegularExpressions.GeneratedRegex(@"^(.+?)\s*\((.+?)\)$")]
         private static partial System.Text.RegularExpressions.Regex NameAndTimeRegex();

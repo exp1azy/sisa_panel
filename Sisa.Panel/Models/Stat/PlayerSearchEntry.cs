@@ -1,12 +1,12 @@
 ﻿namespace Sisa.Panel.Models.Stat
 {
-    public class PlayerStatEntry
+    public class PlayerSearchEntry
     {
-        public int RatingPosition { get; set; }
-
         public string Country { get; set; }
 
         public string Name { get; set; }
+
+        public string Rank { get; set; }
 
         public int Level { get; set; }
 
@@ -18,10 +18,10 @@
 
         public int Deaths { get; set; }
 
-        public float KillDeathRatio { get; set; }
+        public decimal KillDeathRatio { get; set; }
 
         public int MVPs { get; set; }
 
-        public string Knife { get; set; }
+        public string Online { get; set; }
     }
 }

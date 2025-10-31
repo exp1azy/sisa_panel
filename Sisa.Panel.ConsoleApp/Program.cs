@@ -6,19 +6,23 @@
         {
             var client = new SisaPanelClient();
 
-            // var bans = await client.GetBanListAsync(10, 50);
-            // var chatBans = await client.GetChatBanListAsync(1, 20);
+            var bans = await client.GetBanListAsync(10, 50);
+            //var chatBans = await client.GetChatBanListAsync(1, 20);
             //var chatLog = await client.GetChatLogAsync();
-            //var admins = await client.GetAdminsListAsync();
+            //var admins = await client.GetAdminListAsync();
             //var liveStatus = await client.GetLiveStatusAsync();
             //var clans = await client.GetClanListAsync();
-            //var clan = await client.GetClanInfoAsync(clans.Clans.ToList().First().Id);
+            //var clan = await client.GetClanInfoAsync(clans[0].Id);
             //var playerStats = await client.GetPlayerStatsAsync(100, 3);
             //var weapons = await client.GetWeaponStatsAsync();
-            //var stats = await client.GetHumanTopPlayersStatsAsync();
-            //var stats = await client.GetZombieTopPlayersAsync();
+            //var hStats = await client.GetHumanTopPlayersAsync();
+            //var zStats = await client.GetZombieTopPlayersAsync();
             //var maps = await client.GetMapStatsAsync();
-            var player = await client.GetPlayerInfo(26701);
+            //var player = await client.GetPlayerInfo(26701);
+            //var weapon = await client.GetWeaponStatsAsync(79);
+            //var search = await client.SearchAsync("straw");
+            //var contest = await client.GetContestParticipantsAsync();
+            //var history = await client.GetContestHistoryAsync(2, 20);
         }
     }
 }

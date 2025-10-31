@@ -2,6 +2,7 @@
 using Sisa.Panel.Models.AdminList;
 using Sisa.Panel.Models.Chatlog;
 using Sisa.Panel.Models.Clans;
+using Sisa.Panel.Models.Contest;
 using Sisa.Panel.Models.Stat;
 using Sisa.Panel.Parsers;
 using Sisa.Panel.Responses;
@@ -20,11 +21,15 @@ namespace Sisa.Panel
         private readonly ClanListParser _clanListParser;
         private readonly ClanInfoParser _clanInfoParser;
         private readonly PlayerStatsParser _playerStatsParser;
+        private readonly GeneralWeaponStatsParser _generalWeaponStatsParser;
         private readonly WeaponStatsParser _weaponStatsParser;
         private readonly HumanTopPlayersParser _humanBestPlayersParser;
         private readonly ZombieTopPlayersParser _zombieBestPlayersParser;
         private readonly MapStatsParser _mapStatsParser;
         private readonly PlayerInfoParser _playerInfoParser;
+        private readonly PlayerSearchParser _playerSearchParser;
+        private readonly ContestParticipantsParser _contestParticipantsParser;
+        private readonly ContestHistoryParser _contestHistoryParser;
 
         public SisaPanelClient(HttpClient? httpClient = null)
         {
@@ -43,11 +48,27 @@ namespace Sisa.Panel
             _clanListParser = new ClanListParser(context);
             _clanInfoParser = new ClanInfoParser(context);
             _playerStatsParser = new PlayerStatsParser(context);
+            _generalWeaponStatsParser = new GeneralWeaponStatsParser(context);
             _weaponStatsParser = new WeaponStatsParser(context);
             _humanBestPlayersParser = new HumanTopPlayersParser(context);
             _zombieBestPlayersParser = new ZombieTopPlayersParser(context);
             _mapStatsParser = new MapStatsParser(context);
             _playerInfoParser = new PlayerInfoParser(context);
+            _playerSearchParser = new PlayerSearchParser(context);
+            _contestParticipantsParser = new ContestParticipantsParser(context);
+            _contestHistoryParser = new ContestHistoryParser(context);
+        }
+
+        public async Task<IReadOnlyList<ContestParticipant>> GetContestParticipantsAsync(CancellationToken cancellationToken = default)
+        {
+            var html = await _httpClient.GetStringAsync("/free.php", cancellationToken);
+            return await _contestParticipantsParser.ParseAsync(html);
+        }
+
+        public async Task<IReadOnlyList<ContestHistoryEntry>> GetContestHistoryAsync(int page = 1, int view = 20, CancellationToken cancellationToken = default)
+        {
+            var html = await _httpClient.GetStringAsync($"/free.php?sid=0&action=history&view={view}&page={page}", cancellationToken);
+            return await _contestHistoryParser.ParseAsync(html);
         }
 
         public async Task<BanList> GetBanListAsync(int page = 1, int view = 20, CancellationToken cancellationToken = default)
@@ -62,7 +83,7 @@ namespace Sisa.Panel
             return await _chatBanListParser.ParseAsync(html);
         }
 
-        public async Task<IReadOnlyList<ChatLogEntry>> GetChatLogAsync(int view = 200, int page = 1, DateOnly date = default, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ChatLogEntry>> GetChatLogAsync(int page = 1, int view = 200,  DateOnly date = default, CancellationToken cancellationToken = default)
         {
             if (date == default)
                 date = DateOnly.FromDateTime(DateTime.Now);
@@ -97,7 +118,7 @@ namespace Sisa.Panel
             return await _clanInfoParser.ParseAsync(html);
         }
 
-        public async Task<IReadOnlyList<PlayerStatEntry>> GetPlayerStatsAsync(int view = 50, int page = 1, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<PlayerStatEntry>> GetPlayerStatsAsync(int page = 1, int view = 50, CancellationToken cancellationToken = default)
         {
             var html = await _httpClient.GetStringAsync($"/stat.php?sid=0&view={view}&page={page}", cancellationToken);
             return await _playerStatsParser.ParseAsync(html);
@@ -106,6 +127,12 @@ namespace Sisa.Panel
         public async Task<WeaponStats> GetWeaponStatsAsync(CancellationToken cancellationToken = default)
         {
             var html = await _httpClient.GetStringAsync("/stat.php?sid=0&action=weapons", cancellationToken);
+            return await _generalWeaponStatsParser.ParseAsync(html);
+        }
+
+        public async Task<IReadOnlyList<WeaponStatsEntry>> GetWeaponStatsAsync(int wid, CancellationToken cancellationToken = default)
+        {
+            var html = await _httpClient.GetStringAsync($"/stat.php?sid=0&action=weapon&wid={wid}", cancellationToken);
             return await _weaponStatsParser.ParseAsync(html);
         }
 
@@ -131,6 +158,23 @@ namespace Sisa.Panel
         {
             var html = await _httpClient.GetStringAsync($"/stat.php?sid=0&action=player&uid={uid}", cancellationToken);
             return await _playerInfoParser.ParseAsync(html);
+        }
+
+        public async Task<IReadOnlyList<PlayerSearchEntry>> SearchAsync(string query, bool searchByName = true, CancellationToken cancellationToken = default)
+        {
+            var parameters = new Dictionary<string, string>
+            {
+                ["radiosearch"] = searchByName ? "pnick" : "psteam",
+                ["action"] = "insert",
+                ["mysearch"] = query,
+                ["submit"] = "Поиск"
+            };
+
+            var formData = new FormUrlEncodedContent(parameters);
+            var response = await _httpClient.PostAsync("/stat.php?sid=0&action=search", formData, cancellationToken);
+            var html = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            return await _playerSearchParser.ParseAsync(html);
         }
     }
 }

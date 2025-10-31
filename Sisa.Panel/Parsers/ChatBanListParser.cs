@@ -1,11 +1,12 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
+using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.ChatBanList;
 using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class ChatBanListParser(IBrowsingContext context) : IParsable<ChatBanList>
+    internal partial class ChatBanListParser(IBrowsingContext context) : IParser<ChatBanList>
     {
         public async Task<ChatBanList> ParseAsync(string html)
         {
@@ -15,7 +16,23 @@ namespace Sisa.Panel.Parsers
                 ChatBans = ParseChatBansTable(document)
             };
 
-            ParseTotalBansInfo(document, chatBanList);
+            foreach (var element in document.QuerySelectorAll("td[colspan='8']"))
+            {
+                var text = element.TextContent;
+                if (text.Contains("Всего банов:"))
+                {
+                    var match = TotalBansRegex().Match(text);
+
+                    if (match.Success)
+                    {
+                        if (int.TryParse(match.Groups[1].Value, out int total))
+                            chatBanList.TotalBans = total;
+
+                        if (int.TryParse(match.Groups[2].Value, out int active))
+                            chatBanList.ActiveBans = active;
+                    }
+                }
+            }
 
             return chatBanList;
         }
@@ -23,41 +40,33 @@ namespace Sisa.Panel.Parsers
         private static List<ChatBanEntry> ParseChatBansTable(IDocument document)
         {
             var bans = new List<ChatBanEntry>();
-            var banRows = document.QuerySelectorAll("tr[data-toggle]");
 
-            foreach (var row in banRows)
+            foreach (var row in document.QuerySelectorAll("tr[data-toggle]"))
             {
-                var banEntry = ParseChatBanRow(row);
+                var banEntry = new ChatBanEntry();
+                var dataTarget = row.GetAttribute("data-target");
+
+                if (!string.IsNullOrEmpty(dataTarget) && dataTarget.StartsWith('#'))
+                    banEntry.Id = dataTarget[1..];
+
+                var cells = row.QuerySelectorAll("td");
+                if (cells.Length >= 6)
+                {
+                    banEntry.AddedDate = cells[1].GetTextContent();
+                    banEntry.PlayerName = cells[2].GetTextContent();
+                    banEntry.Country = ParseCountry(cells[2]);
+                    banEntry.AdminName = cells[3].GetTextContent();
+                    banEntry.BanType = cells[4].GetTextContent();
+                    banEntry.Duration = cells[5].GetTextContent();
+                }
+
+                ParseHiddenDetails(row, banEntry);
 
                 if (banEntry != null)
                     bans.Add(banEntry);
             }
 
             return bans;
-        }
-
-        private static ChatBanEntry ParseChatBanRow(IElement row)
-        {
-            var entry = new ChatBanEntry();
-            var dataTarget = row.GetAttribute("data-target");
-
-            if (!string.IsNullOrEmpty(dataTarget) && dataTarget.StartsWith('#'))
-                entry.Id = dataTarget[1..];
-
-            var cells = row.QuerySelectorAll("td");
-            if (cells.Length >= 6)
-            {
-                entry.AddedDate = cells[1].TextContent.Trim();
-                entry.PlayerName = cells[2].TextContent.Trim();
-                entry.Country = ParseCountry(cells[2]);
-                entry.AdminName = cells[3].TextContent.Trim();
-                entry.BanType = cells[4].TextContent.Trim();
-                entry.Duration = cells[5].TextContent.Trim();
-            }
-
-            ParseHiddenDetails(row, entry);
-
-            return entry;
         }
 
         private static string ParseCountry(IElement cell)
@@ -82,15 +91,13 @@ namespace Sisa.Panel.Parsers
             var detailsTable = hiddenRow.QuerySelector("table.table-condensed");
             if (detailsTable == null) return;
 
-            var rows = detailsTable.QuerySelectorAll("tr");
-
-            foreach (var detailRow in rows)
+            foreach (var detailRow in detailsTable.QuerySelectorAll("tr"))
             {
-                var cells = detailRow.QuerySelectorAll("td");
+                var cells = detailRow.GetTableCells();
                 if (cells.Length >= 2)
                 {
-                    var key = cells[0].TextContent.Trim();
-                    var value = cells[1].TextContent.Trim();
+                    var key = cells[0].GetTextContent();
+                    var value = cells[1].GetTextContent();
 
                     switch (key)
                     {
@@ -114,29 +121,6 @@ namespace Sisa.Panel.Parsers
                             if (int.TryParse(value, out int violations))
                                 entry.PreviousViolations = violations;
                             break;
-                    }
-                }
-            }
-        }
-
-        private static void ParseTotalBansInfo(IDocument document, ChatBanList chatBanList)
-        {
-            var totalBansElements = document.QuerySelectorAll("td[colspan='8']");
-
-            foreach (var element in totalBansElements)
-            {
-                var text = element.TextContent;
-                if (text.Contains("Всего банов:"))
-                {
-                    var match = TotalBansRegex().Match(text);
-
-                    if (match.Success)
-                    {
-                        if (int.TryParse(match.Groups[1].Value, out int total))
-                            chatBanList.TotalBans = total;
-
-                        if (int.TryParse(match.Groups[2].Value, out int active))
-                            chatBanList.ActiveBans = active;
                     }
                 }
             }
