@@ -18,7 +18,7 @@
             //var hStats = await client.GetHumanTopPlayersAsync();
             //var zStats = await client.GetZombieTopPlayersAsync();
             //var maps = await client.GetMapStatsAsync();
-            var player = await client.GetPlayerInfo(playerStats[0].Uid);
+            var player = await client.GetPlayerAsync(playerStats[0].Uid);
             var weapon = await client.GetWeaponStatsAsync(weapons.Weapons[0].Wid);
             //var search = await client.SearchAsync("straw");
             //var contest = await client.GetContestParticipantsAsync();
