@@ -2,6 +2,8 @@
 {
     public class WeaponEntry
     {
+        public int Wid { get; set; }
+
         public string Name { get; set; }
 
         public int Shots { get; set; }

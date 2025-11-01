@@ -1,11 +1,12 @@
 ﻿using AngleSharp;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Contest;
+using Sisa.Panel.Parsers.Interfaces;
 using System.Net;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class ContestHistoryParser(IBrowsingContext context) : IParser<IReadOnlyList<ContestHistoryEntry>>
+    internal class ContestHistoryParser(IBrowsingContext context) : IParser<IReadOnlyList<ContestHistoryEntry>>
     {
         public async Task<IReadOnlyList<ContestHistoryEntry>> ParseAsync(string html)
         {
@@ -31,12 +32,12 @@ namespace Sisa.Panel.Parsers
                 var link = cells[2].QuerySelector("a");
                 var name = link.GetTextContent();
                 name = WebUtility.HtmlDecode(name);
-                name = RemoveSpacesRegex().Replace(name, " ").Trim();
+                name = ParserRegex.WhitespaceCleanupPattern().Replace(name, " ").Trim();
                 entry.Winner = name;
 
                 var giftText = cells[3].GetTextContent();
                 giftText = WebUtility.HtmlDecode(giftText);
-                giftText = RemoveSpacesRegex().Replace(giftText, " ").Trim();
+                giftText = ParserRegex.WhitespaceCleanupPattern().Replace(giftText, " ").Trim();
                 entry.Gift = giftText;
 
                 if (entry != null)
@@ -45,8 +46,5 @@ namespace Sisa.Panel.Parsers
 
             return historyEntries.AsReadOnly();
         }
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"\s+")]
-        private static partial System.Text.RegularExpressions.Regex RemoveSpacesRegex();
     }
 }

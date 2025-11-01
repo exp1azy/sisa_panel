@@ -2,6 +2,7 @@
 using AngleSharp.Dom;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Stat;
+using Sisa.Panel.Parsers.Interfaces;
 
 namespace Sisa.Panel.Parsers
 {

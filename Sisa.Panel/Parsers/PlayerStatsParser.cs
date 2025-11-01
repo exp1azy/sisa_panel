@@ -2,11 +2,12 @@
 using AngleSharp.Dom;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Stat;
+using Sisa.Panel.Parsers.Interfaces;
 using System.Globalization;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class PlayerStatsParser(IBrowsingContext context) : IParser<IReadOnlyList<PlayerStatEntry>>
+    internal class PlayerStatsParser(IBrowsingContext context) : IParser<IReadOnlyList<PlayerStatEntry>>
     {
         public async Task<IReadOnlyList<PlayerStatEntry>> ParseAsync(string html)
         {
@@ -20,11 +21,12 @@ namespace Sisa.Panel.Parsers
             foreach (var row in table.GetTableRows())
             {
                 var cells = row.GetTableCells();
-                if (cells.Length < 10) return [];
+                if (cells.Length < 10) continue;
 
                 var player = new PlayerStatEntry()
                 {
                     RatingPosition = ParseRatingPosition(cells[0]),
+                    Uid = ParseUid(cells[1]),
                     Country = ParseCountry(cells[1]),
                     Name = ParseName(cells[1]),
                     Level = ParseLevel(cells[2]),
@@ -52,6 +54,21 @@ namespace Sisa.Panel.Parsers
             return position;
         }
 
+        private static int ParseUid(IElement cell)
+        {
+            var link = cell.QuerySelector("a[href*='uid=']");
+            if (link != null)
+            {
+                var href = link.GetAttribute("href") ?? "";
+                var uidMatch = ParserRegex.UidPattern().Match(href);
+
+                if (uidMatch.Success && int.TryParse(uidMatch.Groups[1].Value, out int uid))
+                    return uid;
+            }
+
+            return 0;
+        }
+
         private static string ParseCountry(IElement cell)
         {
             var flagImg = cell.QuerySelector("img");
@@ -63,7 +80,7 @@ namespace Sisa.Panel.Parsers
         private static string ParseName(IElement cell)
         {
             var textContent = cell.GetTextContent();
-            return PlayerNameRegex().Replace(textContent, " ").Trim();
+            return ParserRegex.WhitespaceCleanupPattern().Replace(textContent, " ").Trim();
         }
 
         private static int ParseLevel(IElement cell)
@@ -164,8 +181,5 @@ namespace Sisa.Panel.Parsers
             var knifeImg = cell.QuerySelector("img");
             return knifeImg.GetAttribute("title");
         }
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"\s+")]
-        private static partial System.Text.RegularExpressions.Regex PlayerNameRegex();
     }
 }

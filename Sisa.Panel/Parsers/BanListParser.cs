@@ -2,11 +2,12 @@
 using AngleSharp.Dom;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.BanList;
+using Sisa.Panel.Parsers.Interfaces;
 using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class BanListParser(IBrowsingContext context) : IParser<BanList>
+    internal class BanListParser(IBrowsingContext context) : IParser<BanList>
     {
         public async Task<BanList> ParseAsync(string htmlContent)
         {
@@ -22,14 +23,14 @@ namespace Sisa.Panel.Parsers
             {
                 var summaryText = summaryRow.TextContent;
 
-                var bansMatch = BansMatch().Match(summaryText);
+                var bansMatch = ParserRegex.TotalBansPattern().Match(summaryText);
                 if (bansMatch.Success)
                 {
                     banList.TotalBans = int.Parse(bansMatch.Groups[1].Value);
                     banList.ActiveBans = int.Parse(bansMatch.Groups[2].Value);
                 }
 
-                var demosMatch = DemosMatch().Match(summaryText);
+                var demosMatch = ParserRegex.TotalDemosPattern().Match(summaryText);
                 if (demosMatch.Success)
                     banList.TotalDemos = int.Parse(demosMatch.Groups[1].Value);
             }
@@ -202,11 +203,5 @@ namespace Sisa.Panel.Parsers
 
             return "Unknown";
         }
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"Всего банов:\s*(\d+)\s*\((\d+)\s*Active\)")]
-        private static partial System.Text.RegularExpressions.Regex BansMatch();
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"Всего демо в базе данных\s*:\s*(\d+)")]
-        private static partial System.Text.RegularExpressions.Regex DemosMatch();
     }
 }

@@ -2,11 +2,12 @@
 using AngleSharp.Dom;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Stat;
+using Sisa.Panel.Parsers.Interfaces;
 using System.Globalization;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class PlayerSearchParser(IBrowsingContext context) : IParser<IReadOnlyList<PlayerSearchEntry>>
+    internal class PlayerSearchParser(IBrowsingContext context) : IParser<IReadOnlyList<PlayerSearchEntry>>
     {
         public async Task<IReadOnlyList<PlayerSearchEntry>> ParseAsync(string html)
         {
@@ -27,7 +28,7 @@ namespace Sisa.Panel.Parsers
 
                 var link = cells[1].QuerySelector("a");
                 var name = link.GetTextContent();
-                name = NameRegex().Replace(name, " ").Trim();
+                name = ParserRegex.WhitespaceCleanupPattern().Replace(name, " ").Trim();
                 entry.Name = name;
 
                 var rankSpan = cells[2].QuerySelector("span[title='Rank']");
@@ -77,8 +78,5 @@ namespace Sisa.Panel.Parsers
 
             return 0;
         }
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"\s+")]
-        private static partial System.Text.RegularExpressions.Regex NameRegex();
     }
 }

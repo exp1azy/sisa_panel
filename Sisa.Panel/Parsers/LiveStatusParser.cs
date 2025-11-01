@@ -2,11 +2,12 @@
 using AngleSharp.Dom;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Live;
+using Sisa.Panel.Parsers.Interfaces;
 using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class LiveStatusParser(IBrowsingContext context) : IParser<ServerLiveStatus>
+    internal class LiveStatusParser(IBrowsingContext context) : IParser<ServerLiveStatus>
     {
         public async Task<ServerLiveStatus> ParseAsync(string html)
         {
@@ -45,7 +46,7 @@ namespace Sisa.Panel.Parsers
                             break;
                         case "Игроков":
                             var playerText = cells[2].GetTextContent();
-                            var playerMatch = TimeLeftRegex().Match(playerText);
+                            var playerMatch = ParserRegex.TimeLeftPattern().Match(playerText);
 
                             if (playerMatch.Success)
                             {
@@ -106,7 +107,7 @@ namespace Sisa.Panel.Parsers
                     player.SteamId = cells[1].GetTextContent();
 
                     var fragsText = cells[2].GetTextContent();
-                    var fragsMatch = FragsCountRegex().Match(fragsText);
+                    var fragsMatch = ParserRegex.FragsPattern().Match(fragsText);
 
                     if (fragsMatch.Success)
                     {
@@ -152,7 +153,7 @@ namespace Sisa.Panel.Parsers
                         teamSummary.Team = PlayerTeam.Human;
 
                     var teamText = cells[0].GetTextContent();
-                    var playerCountMatch = PlayerCountRegex().Match(teamText);
+                    var playerCountMatch = ParserRegex.PlayerCountPattern().Match(teamText);
 
                     if (playerCountMatch.Success)
                         teamSummary.PlayerCount = int.Parse(playerCountMatch.Groups[1].Value);
@@ -182,7 +183,7 @@ namespace Sisa.Panel.Parsers
                 var scriptContent = script.TextContent;
                 if (scriptContent.Contains("chart3Dat") && scriptContent.Contains("data :"))
                 {
-                    foreach (System.Text.RegularExpressions.Match match in ActivityRegex().Matches(scriptContent))
+                    foreach (System.Text.RegularExpressions.Match match in ParserRegex.ActivityPattern().Matches(scriptContent))
                     {
                         if (match.Groups.Count == 3)
                         {
@@ -204,7 +205,7 @@ namespace Sisa.Panel.Parsers
 
                 if (scriptContent.Contains("chart4Dat") && scriptContent.Contains("data:"))
                 {
-                    foreach (System.Text.RegularExpressions.Match match in ActivityRegex().Matches(scriptContent))
+                    foreach (System.Text.RegularExpressions.Match match in ParserRegex.ActivityPattern().Matches(scriptContent))
                     {
                         if (match.Groups.Count == 3)
                         {
@@ -232,17 +233,5 @@ namespace Sisa.Panel.Parsers
 
             return previousMaps;
         }
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"(\d+)\s*/\s*(\d+)")]
-        private static partial System.Text.RegularExpressions.Regex TimeLeftRegex();
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"(\d+)\s+игроков")]
-        private static partial System.Text.RegularExpressions.Regex PlayerCountRegex();
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"(\d+)\s*:\s*(\d+)")]
-        private static partial System.Text.RegularExpressions.Regex FragsCountRegex();
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"{x:\s*'([^']+)',\s*y:\s*(\d+)}")]
-        private static partial System.Text.RegularExpressions.Regex ActivityRegex();
     }
 }

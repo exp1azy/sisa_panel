@@ -1,6 +1,7 @@
 ﻿using AngleSharp;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.AdminList;
+using Sisa.Panel.Parsers.Interfaces;
 
 namespace Sisa.Panel.Parsers
 {

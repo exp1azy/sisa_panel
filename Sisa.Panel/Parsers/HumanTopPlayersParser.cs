@@ -2,17 +2,18 @@
 using AngleSharp.Dom;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Stat;
+using Sisa.Panel.Parsers.Interfaces;
 using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class HumanTopPlayersParser(IBrowsingContext context) : IParser<HumanTopPlayersStat>
+    internal class HumanTopPlayersParser(IBrowsingContext context) : IParser<HumanTopPlayersStats>
     {
-        public async Task<HumanTopPlayersStat> ParseAsync(string html)
+        public async Task<HumanTopPlayersStats> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
 
-            return new HumanTopPlayersStat
+            return new HumanTopPlayersStats
             {
                 Human = ParseHumanClass(document),
                 Survivor = ParseSurvivorClass(document),

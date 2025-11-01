@@ -2,7 +2,7 @@
 
 namespace Sisa.Panel.Responses
 {
-    public class HumanTopPlayersStat
+    public class HumanTopPlayersStats
     {
         public HumanClassInfo Human { get; set; }
 

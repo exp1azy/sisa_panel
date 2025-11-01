@@ -2,17 +2,18 @@
 using AngleSharp.Dom;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Stat;
+using Sisa.Panel.Parsers.Interfaces;
 using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class ZombieTopPlayersParser(IBrowsingContext context) : IParser<ZombieTopPlayersStat>
+    internal class ZombieTopPlayersParser(IBrowsingContext context) : IParser<ZombieTopPlayersStats>
     {
-        public async Task<ZombieTopPlayersStat> ParseAsync(string html)
+        public async Task<ZombieTopPlayersStats> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
 
-            return new ZombieTopPlayersStat
+            return new ZombieTopPlayersStats
             {
                 Classic = ParseZombieClass(document, "Classic", "zm_classic"),
                 Fast = ParseZombieClass(document, "Fast", "zm_fast"),

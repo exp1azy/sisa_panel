@@ -1,4 +1,4 @@
-﻿namespace Sisa.Panel.Parsers
+﻿namespace Sisa.Panel.Parsers.Interfaces
 {
     internal interface IParser<T> where T : class
     {

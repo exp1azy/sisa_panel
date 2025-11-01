@@ -2,6 +2,8 @@
 {
     public class PlayerStatEntry
     {
+        public int Uid { get; set; }
+
         public int RatingPosition { get; set; }
 
         public string Country { get; set; }

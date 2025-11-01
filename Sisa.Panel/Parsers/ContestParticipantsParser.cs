@@ -1,10 +1,11 @@
 ﻿using AngleSharp;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Contest;
+using Sisa.Panel.Parsers.Interfaces;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class ContestParticipantsParser(IBrowsingContext context) : IParser<IReadOnlyList<ContestParticipant>>
+    internal class ContestParticipantsParser(IBrowsingContext context) : IParser<IReadOnlyList<ContestParticipant>>
     {
         public async Task<IReadOnlyList<ContestParticipant>> ParseAsync(string html)
         {
@@ -25,7 +26,7 @@ namespace Sisa.Panel.Parsers
 
                 var link = cells[1].QuerySelector("a");
                 var name = link.GetTextContent();
-                name = NameRegex().Replace(name, " ").Trim();
+                name = ParserRegex.WhitespaceCleanupPattern().Replace(name, " ").Trim();
                 participant.Name = name;
 
                 var dateText = cells[2].GetTextContent();
@@ -37,8 +38,5 @@ namespace Sisa.Panel.Parsers
 
             return participants.AsReadOnly();
         }
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"\s+")]
-        private static partial System.Text.RegularExpressions.Regex NameRegex();
     }
 }

@@ -1,10 +1,11 @@
 ﻿using AngleSharp;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Clans;
+using Sisa.Panel.Parsers.Interfaces;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class ClanListParser(IBrowsingContext context) : IParser<IReadOnlyList<ClanEntry>>
+    internal class ClanListParser(IBrowsingContext context) : IParser<IReadOnlyList<ClanEntry>>
     {
         public async Task<IReadOnlyList<ClanEntry>> ParseAsync(string html)
         {
@@ -18,9 +19,8 @@ namespace Sisa.Panel.Parsers
             foreach (var row in table.GetTableRows())
             {
                 var cells = row.GetTableCells();
-
                 if (cells.Length < 4)
-                    return null;
+                    continue;
 
                 var clan = new ClanEntry
                 {
@@ -41,7 +41,7 @@ namespace Sisa.Panel.Parsers
                     clan.ClanName = clanLink.GetTextContent();
 
                     var href = clanLink.GetAttribute("href");
-                    var idMatch = IdRegex().Match(href);
+                    var idMatch = ParserRegex.UrlIdExtractorPattern().Match(href);
 
                     if (idMatch.Success && idMatch.Groups.Count > 1)
                     {
@@ -56,7 +56,7 @@ namespace Sisa.Panel.Parsers
                 }
 
                 if (!string.IsNullOrEmpty(clan.ClanName))
-                    clan.ClanName = ClanNameRegex().Replace(clan.ClanName, " ").Trim();
+                    clan.ClanName = ParserRegex.WhitespaceCleanupPattern().Replace(clan.ClanName, " ").Trim();
 
                 var actions = new List<string>();
 
@@ -85,11 +85,5 @@ namespace Sisa.Panel.Parsers
 
             return clans;
         }
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"\s+")]
-        private static partial System.Text.RegularExpressions.Regex ClanNameRegex();
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"[?&]id=(\d+)")]
-        private static partial System.Text.RegularExpressions.Regex IdRegex();
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Sisa.Panel.Responses
 {
-    public class ZombieTopPlayersStat
+    public class ZombieTopPlayersStats
     {
         public ZombieClassInfo Classic { get; set; }
 

@@ -2,6 +2,7 @@
 using AngleSharp.Dom;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Stat;
+using Sisa.Panel.Parsers.Interfaces;
 using Sisa.Panel.Responses;
 using System.Globalization;
 
@@ -46,7 +47,7 @@ namespace Sisa.Panel.Parsers
                 var nickText = nickValueElement.GetTextContent();
                 if (!string.IsNullOrEmpty(nickText))
                 {
-                    var nickAndTag = NickTextRegex().Replace(nickText, "").Split('|');
+                    var nickAndTag = ParserRegex.TrimUntilNbspPattern().Replace(nickText, "").Split('|');
                     if (nickAndTag.Length == 2)
                     {
                         generalInfo.Tag = nickAndTag[0].Trim();
@@ -64,7 +65,7 @@ namespace Sisa.Panel.Parsers
             {
                 generalInfo.SteamProfileUrl = steamLink.GetAttribute("href");
                 generalInfo.SteamProfileName = steamLink.GetTextContent();
-                var steamIdMatch = SteamIdRegex().Match(generalInfo.SteamProfileUrl);
+                var steamIdMatch = ParserRegex.SteamIdPattern().Match(generalInfo.SteamProfileUrl);
 
                 if (steamIdMatch.Success)
                     generalInfo.SteamId = steamIdMatch.Groups[1].Value;
@@ -201,12 +202,12 @@ namespace Sisa.Panel.Parsers
                             var progressText = valueCell.TextContent;
                             if (!string.IsNullOrEmpty(progressText))
                             {
-                                var match = NextLevelRegex().Match(progressText);
+                                var match = ParserRegex.FormattedNumberExtractorPattern().Match(progressText);
 
                                 if (match.Success && int.TryParse(match.Groups[1].Value.Replace(" ", ""), out int nextLevel))
                                     stats.NextLevel = nextLevel;
 
-                                var remainingMatch = RemainingTimeRegex().Match(progressText);
+                                var remainingMatch = ParserRegex.RemainingTimePattern().Match(progressText);
 
                                 if (remainingMatch.Success && int.TryParse(remainingMatch.Groups[1].Value.Replace(" ", ""), out int expToNext))
                                     stats.ExpToNextLevel = expToNext;
@@ -394,7 +395,7 @@ namespace Sisa.Panel.Parsers
                     var fullText = textSpan.GetTextContent();
                     fullText = fullText.Replace("&nbsp;", " ").Replace("\u00A0", " ").Trim();
 
-                    var match = NameAndTimeRegex().Match(fullText);
+                    var match = ParserRegex.TempWeaponPattern().Match(fullText);
                     if (match.Success)
                     {
                         weapon.Name = match.Groups[1].Value.Trim();
@@ -619,20 +620,5 @@ namespace Sisa.Panel.Parsers
             }
             return "Unknown";
         }
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"/(7656119\d+)/")]
-        private static partial System.Text.RegularExpressions.Regex SteamIdRegex();
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"^(.+?)\s*\((.+?)\)$")]
-        private static partial System.Text.RegularExpressions.Regex NameAndTimeRegex();
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"^.*?\s+\&nbsp;")]
-        private static partial System.Text.RegularExpressions.Regex NickTextRegex();
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"(\d+(?:\s?\d+)*)\s+осталось")]
-        private static partial System.Text.RegularExpressions.Regex RemainingTimeRegex();
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"(\d+(?:\s?\d+)*)")]
-        private static partial System.Text.RegularExpressions.Regex NextLevelRegex();
     }
 }

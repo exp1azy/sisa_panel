@@ -2,6 +2,7 @@
 using AngleSharp.Dom;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Stat;
+using Sisa.Panel.Parsers.Interfaces;
 using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
@@ -29,30 +30,47 @@ namespace Sisa.Panel.Parsers
             foreach (var row in table.GetTableRows())
             {
                 var cells = row.GetTableCells();
-                if (cells.Length >= 13)
-                {
-                    var weapon = new WeaponEntry
-                    {
-                        Name = GetTextContent(cells[1]),
-                        Shots = ParseInt(GetTextContent(cells[2])),
-                        ZombieKills = ParseInt(GetTextContent(cells[3])),
-                        ZombieDamage = ParseLong(GetTextContent(cells[4])),
-                        Hits = ParseInt(GetTextContent(cells[5])),
-                        Assists = ParseInt(GetTextContent(cells[6])),
-                        MVPs = ParseInt(GetTextContent(cells[7])),
-                        Levels = ParseInt(GetTextContent(cells[8])),
-                        BossDamage = ParseInt(GetTextContent(cells[9])),
-                        BossKills = ParseInt(GetTextContent(cells[10])),
-                        AvailableFromLevel = ParseInt(GetTextContent(cells[11])),
-                        Cost = ParseInt(GetTextContent(cells[12])),
-                        Ratio = ParseInt(GetTextContent(cells[13]))
-                    };
 
-                    weapons.Add(weapon);
-                }
+                if (cells.Length < 13)
+                    continue;
+
+                var weapon = new WeaponEntry
+                {
+                    Wid = ParseWid(cells[1]),
+                    Name = GetTextContent(cells[1]),
+                    Shots = ParseInt(GetTextContent(cells[2])),
+                    ZombieKills = ParseInt(GetTextContent(cells[3])),
+                    ZombieDamage = ParseLong(GetTextContent(cells[4])),
+                    Hits = ParseInt(GetTextContent(cells[5])),
+                    Assists = ParseInt(GetTextContent(cells[6])),
+                    MVPs = ParseInt(GetTextContent(cells[7])),
+                    Levels = ParseInt(GetTextContent(cells[8])),
+                    BossDamage = ParseInt(GetTextContent(cells[9])),
+                    BossKills = ParseInt(GetTextContent(cells[10])),
+                    AvailableFromLevel = ParseInt(GetTextContent(cells[11])),
+                    Cost = ParseInt(GetTextContent(cells[12])),
+                    Ratio = ParseInt(GetTextContent(cells[13]))
+                };
+
+                weapons.Add(weapon);
             }
 
             return weapons;
+        }
+
+        private static int ParseWid(IElement cell)
+        {
+            var link = cell.QuerySelector("a[href*='wid=']");
+            if (link != null)
+            {
+                var href = link.GetAttribute("href") ?? "";
+                var widMatch = ParserRegex.WidPattern().Match(href);
+
+                if (widMatch.Success && int.TryParse(widMatch.Groups[1].Value, out int wid))
+                    return wid;
+            }
+
+            return 0;
         }
 
         private static List<ModWeaponEntry> ParseModWeaponsTable(IElement table)

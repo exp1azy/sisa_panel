@@ -2,11 +2,12 @@
 using AngleSharp.Dom;
 using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.ChatBanList;
+using Sisa.Panel.Parsers.Interfaces;
 using Sisa.Panel.Responses;
 
 namespace Sisa.Panel.Parsers
 {
-    internal partial class ChatBanListParser(IBrowsingContext context) : IParser<ChatBanList>
+    internal class ChatBanListParser(IBrowsingContext context) : IParser<ChatBanList>
     {
         public async Task<ChatBanList> ParseAsync(string html)
         {
@@ -21,7 +22,7 @@ namespace Sisa.Panel.Parsers
                 var text = element.TextContent;
                 if (text.Contains("Всего банов:"))
                 {
-                    var match = TotalBansRegex().Match(text);
+                    var match = ParserRegex.TotalBansPattern().Match(text);
 
                     if (match.Success)
                     {
@@ -125,8 +126,5 @@ namespace Sisa.Panel.Parsers
                 }
             }
         }
-
-        [System.Text.RegularExpressions.GeneratedRegex(@"Всего банов:\s*(\d+)\s*\((\d+)\s*active\)")]
-        private static partial System.Text.RegularExpressions.Regex TotalBansRegex();
     }
 }

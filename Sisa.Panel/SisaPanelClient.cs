@@ -9,9 +9,12 @@ using Sisa.Panel.Responses;
 
 namespace Sisa.Panel
 {
-    public class SisaPanelClient
+    public class SisaPanelClient : IDisposable
     {
+        private bool _disposed;
+
         private readonly HttpClient _httpClient;
+        private readonly IBrowsingContext _context;
 
         private readonly BanListParser _banListParser;
         private readonly ChatBanListParser _chatBanListParser;
@@ -34,29 +37,28 @@ namespace Sisa.Panel
         public SisaPanelClient(HttpClient? httpClient = null)
         {
             httpClient ??= new HttpClient();
-            httpClient.DefaultRequestHeaders.Clear();
             httpClient.BaseAddress = new Uri("https://panel.lan-game.com");
+
             _httpClient = httpClient;
+            _context = BrowsingContext.New(Configuration.Default);
 
-            var context = BrowsingContext.New(Configuration.Default);
-
-            _banListParser = new BanListParser(context);
-            _chatBanListParser = new ChatBanListParser(context);
-            _chatLogParser = new ChatLogParser(context);
-            _adminListParser = new AdminListParser(context);
-            _liveStatusParser = new LiveStatusParser(context);
-            _clanListParser = new ClanListParser(context);
-            _clanInfoParser = new ClanInfoParser(context);
-            _playerStatsParser = new PlayerStatsParser(context);
-            _generalWeaponStatsParser = new GeneralWeaponStatsParser(context);
-            _weaponStatsParser = new WeaponStatsParser(context);
-            _humanBestPlayersParser = new HumanTopPlayersParser(context);
-            _zombieBestPlayersParser = new ZombieTopPlayersParser(context);
-            _mapStatsParser = new MapStatsParser(context);
-            _playerInfoParser = new PlayerInfoParser(context);
-            _playerSearchParser = new PlayerSearchParser(context);
-            _contestParticipantsParser = new ContestParticipantsParser(context);
-            _contestHistoryParser = new ContestHistoryParser(context);
+            _banListParser = new BanListParser(_context);
+            _chatBanListParser = new ChatBanListParser(_context);
+            _chatLogParser = new ChatLogParser(_context);
+            _adminListParser = new AdminListParser(_context);
+            _liveStatusParser = new LiveStatusParser(_context);
+            _clanListParser = new ClanListParser(_context);
+            _clanInfoParser = new ClanInfoParser(_context);
+            _playerStatsParser = new PlayerStatsParser(_context);
+            _generalWeaponStatsParser = new GeneralWeaponStatsParser(_context);
+            _weaponStatsParser = new WeaponStatsParser(_context);
+            _humanBestPlayersParser = new HumanTopPlayersParser(_context);
+            _zombieBestPlayersParser = new ZombieTopPlayersParser(_context);
+            _mapStatsParser = new MapStatsParser(_context);
+            _playerInfoParser = new PlayerInfoParser(_context);
+            _playerSearchParser = new PlayerSearchParser(_context);
+            _contestParticipantsParser = new ContestParticipantsParser(_context);
+            _contestHistoryParser = new ContestHistoryParser(_context);
         }
 
         public async Task<IReadOnlyList<ContestParticipant>> GetContestParticipantsAsync(CancellationToken cancellationToken = default)
@@ -136,13 +138,13 @@ namespace Sisa.Panel
             return await _weaponStatsParser.ParseAsync(html);
         }
 
-        public async Task<HumanTopPlayersStat> GetHumanTopPlayersAsync(CancellationToken cancellationToken = default)
+        public async Task<HumanTopPlayersStats> GetHumanTopPlayersAsync(CancellationToken cancellationToken = default)
         {
             var html = await _httpClient.GetStringAsync("/stat.php?sid=0&action=hmcl", cancellationToken);
             return await _humanBestPlayersParser.ParseAsync(html);
         }
 
-        public async Task<ZombieTopPlayersStat> GetZombieTopPlayersAsync(CancellationToken cancellationToken = default)
+        public async Task<ZombieTopPlayersStats> GetZombieTopPlayersAsync(CancellationToken cancellationToken = default)
         {
             var html = await _httpClient.GetStringAsync("/stat.php?sid=0&action=zmcl", cancellationToken);
             return await _zombieBestPlayersParser.ParseAsync(html);
@@ -175,6 +177,18 @@ namespace Sisa.Panel
             var html = await response.Content.ReadAsStringAsync(cancellationToken);
 
             return await _playerSearchParser.ParseAsync(html);
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _httpClient.Dispose();
+                _context.Dispose();
+                _disposed = true;
+            }
+
+            GC.SuppressFinalize(this);
         }
     }
 }
