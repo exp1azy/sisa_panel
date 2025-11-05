@@ -4,7 +4,7 @@ namespace Sisa.Panel.Parsers
 {
     internal static partial class ParserRegex
     {
-        [GeneratedRegex(@"Всего банов:\s*(\d+)\s*\((\d+)\s*Active\)")]
+        [GeneratedRegex(@"Всего банов:\s*(\d+)\s*\((\d+)\s*active\)", RegexOptions.IgnoreCase)]
         public static partial Regex TotalBansPattern();
 
         [GeneratedRegex(@"Всего демо в базе данных\s*:\s*(\d+)")]
