@@ -34,7 +34,7 @@ namespace Sisa.Panel
         private readonly MapStatsParser _mapStatsParser;
         private readonly PlayerInfoParser _playerInfoParser;
         private readonly PlayerSearchParser _playerSearchParser;
-        private readonly ContestParticipantsParser _contestParticipantsParser;
+        private readonly ContestParser _contestParticipantsParser;
         private readonly ContestHistoryParser _contestHistoryParser;
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Sisa.Panel
             _mapStatsParser = new MapStatsParser(_context);
             _playerInfoParser = new PlayerInfoParser(_context);
             _playerSearchParser = new PlayerSearchParser(_context);
-            _contestParticipantsParser = new ContestParticipantsParser(_context);
+            _contestParticipantsParser = new ContestParser(_context);
             _contestHistoryParser = new ContestHistoryParser(_context);
         }
 
@@ -73,7 +73,7 @@ namespace Sisa.Panel
         /// </summary>
         /// <param name="cancellationToken">Токен отмены.</param>
         /// <returns>Список участников конкурса, доступный только для чтения.</returns>
-        public async Task<IReadOnlyList<ContestParticipant>> GetContestAsync(CancellationToken cancellationToken = default)
+        public async Task<ContestInfo> GetContestAsync(CancellationToken cancellationToken = default)
         {
             var html = await _httpClient.GetStringAsync("/free.php", cancellationToken);
             return await _contestParticipantsParser.ParseAsync(html);

@@ -1,9 +1,18 @@
 ﻿namespace Sisa.Panel.Models.Live
 {
+    /// <summary>
+    /// Статистика сервера.
+    /// </summary>
     public class ServerStatistics
     {
-        public Dictionary<string, int> HourlyActivity { get; set; }
+        /// <summary>
+        /// Активность игроков за последний час.
+        /// </summary>
+        public IDictionary<string, int> HourlyActivity { get; set; }
 
-        public Dictionary<string, int> MonthlyActivity { get; set; }
+        /// <summary>
+        /// Средний онлайн за месяц.
+        /// </summary>
+        public IDictionary<string, int> MonthlyActivity { get; set; }
     }
 }

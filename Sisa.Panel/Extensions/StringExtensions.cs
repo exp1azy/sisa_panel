@@ -4,16 +4,28 @@ namespace Sisa.Panel.Extensions
 {
     internal static class StringExtensions
     {
+        static readonly string[] formats = ["dd.MM.yyyy HH:mm:ss", "dd-MM-yyyy HH:mm:ss"];
+
         public static DateOnly ParseToDateOnly(this string dateText)
         {
-            _ = DateOnly.TryParseExact(dateText, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date);
-            return date;
+            foreach (var format in formats)
+            {
+                if (DateOnly.TryParseExact(dateText, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly result))
+                    return result;
+            }
+
+            return DateOnly.TryParse(dateText, out DateOnly defaultResult) ? defaultResult : DateOnly.MinValue;
         }
 
         public static DateTime ParseToDateTime(this string dateText)
         {
-            _ = DateTime.TryParseExact(dateText, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date);
-            return date;
+            foreach (var format in formats)
+            {
+                if (DateTime.TryParseExact(dateText, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
+                    return result;
+            }
+
+            return DateTime.TryParse(dateText, out DateTime defaultResult) ? defaultResult : DateTime.MinValue;
         }
     }
 }

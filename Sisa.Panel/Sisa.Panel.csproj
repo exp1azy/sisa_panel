@@ -11,8 +11,10 @@
 	<Description>Клиент для https://panel.lan-game.com</Description>
 	<PackageIcon>6c4ed7bf-7268-4f63-9222-613d4994527c.jpg</PackageIcon>
 	<RepositoryUrl>https://github.com/exp1azy/sisa_panel</RepositoryUrl>
-	<PackageTags>sisa;panel;lan-game;cso;zombie</PackageTags>
+	<PackageTags>sisa;panel;lan-game;cso;zombie;cszero</PackageTags>
 	<PackageProjectUrl>https://github.com/exp1azy/sisa_panel</PackageProjectUrl>
+	<Version>1.0.1</Version>
+	<PackageReleaseNotes>исправлена регулярка для chatbans</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

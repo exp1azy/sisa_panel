@@ -174,8 +174,8 @@ namespace Sisa.Panel.Parsers
         {
             var statistics = new ServerStatistics
             {
-                HourlyActivity = [],
-                MonthlyActivity = []
+                HourlyActivity = new Dictionary<string, int>(),
+                MonthlyActivity = new Dictionary<string, int>()
             };
 
             foreach (var script in document.QuerySelectorAll("script"))

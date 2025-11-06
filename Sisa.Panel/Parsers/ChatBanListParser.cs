@@ -53,7 +53,7 @@ namespace Sisa.Panel.Parsers
                 var cells = row.QuerySelectorAll("td");
                 if (cells.Length >= 6)
                 {
-                    banEntry.AddedDate = cells[1].GetTextContent();
+                    banEntry.Date = cells[1].GetTextContent();
                     banEntry.PlayerName = cells[2].GetTextContent();
                     banEntry.Country = ParseCountry(cells[2]);
                     banEntry.AdminName = cells[3].GetTextContent();
@@ -98,28 +98,32 @@ namespace Sisa.Panel.Parsers
                 if (cells.Length >= 2)
                 {
                     var key = cells[0].GetTextContent();
-                    var value = cells[1].GetTextContent();
+                    var value = cells[1];
 
                     switch (key)
                     {
                         case "Игрок":
                             if (string.IsNullOrEmpty(entry.PlayerName))
-                                entry.PlayerName = value;
+                                entry.PlayerName = value.GetTextContent();
                             break;
                         case "ID Номер":
-                            entry.SteamId = value;
+                            entry.SteamId = value.GetTextContent();
+                            break;
+                        case "Steam профиль":
+                            var link = value.GetSteamProfileElement();
+                            entry.SteamProfile = link?.GetAttribute("href") ?? string.Empty;
                             break;
                         case "Добавлен":
-                            entry.AddedDate = value;
+                            entry.Date = value.GetTextContent();
                             break;
                         case "Время бана":
-                            entry.BanTime = value;
+                            entry.BanTime = value.GetTextContent();
                             break;
                         case "Истекает":
-                            entry.Expires = value;
+                            entry.Expires = value.GetTextContent();
                             break;
                         case "Предыдущих нарушений":
-                            if (int.TryParse(value, out int violations))
+                            if (int.TryParse(value.GetTextContent(), out int violations))
                                 entry.PreviousViolations = violations;
                             break;
                     }

@@ -69,14 +69,12 @@ namespace Sisa.Panel.Parsers
 
                 if (content.Contains("internet-explorer"))
                     banType = "website";
-                else if (content.Contains("cstrike.gif"))
-                    banType = "cs";
                 else if (content.Contains("czero.gif"))
                     banType = "czero";
 
                 var ban = new BanEntry
                 {
-                    BanId = banId,
+                    Id = banId,
                     Date = cols[1].GetTextContent(),
                     PlayerName = ExtractPlayerName(cols[2]),
                     Country = ExtractCountry(cols[2]),
@@ -84,7 +82,7 @@ namespace Sisa.Panel.Parsers
                     Reason = cols[4].GetTextContent(),
                     Duration = cols[5].GetTextContent(),
                     HasDemo = !cols[6].TextContent.Contains("нет демо"),
-                    BanType = banType
+                    Client = banType
                 };
 
                 if (ban != null)
@@ -108,13 +106,6 @@ namespace Sisa.Panel.Parsers
                         var steamProfileCell = steamProfileRow.QuerySelector(".span6");
                         modalData.SteamProfile = ExtractSteamProfile(steamProfileCell);
                         modalData.IsSteamUser = modalData.SteamProfile != "Non Steam";
-                    }
-
-                    var addedRow = modal.QuerySelector(".row-fluid:has(.span5:contains('Добавлен'))");
-                    if (addedRow != null)
-                    {
-                        var addedCell = addedRow.QuerySelector(".span6");
-                        modalData.AddedDate = addedCell.GetTextContent();
                     }
 
                     var expiresRow = modal.QuerySelector(".row-fluid:has(.span5:contains('Истекает'))");
@@ -142,7 +133,6 @@ namespace Sisa.Panel.Parsers
                     if (modalData != null)
                     {
                         ban.SteamId = modalData.SteamId;
-                        ban.AddedDate = modalData.AddedDate;
                         ban.ExpiresDate = modalData.ExpiresDate;
                         ban.PreviousViolations = modalData.PreviousViolations;
                         ban.Server = modalData.Server;
