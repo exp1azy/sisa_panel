@@ -597,28 +597,19 @@ namespace Sisa.Panel.Parsers
             if (img != null)
             {
                 var src = img.GetAttribute("src") ?? "";
-                if (src.Contains("hero")) return "Hero";
-                if (src.Contains("heroine")) return "Heroine";
-                if (src.Contains("surv")) return "Survivor";
-                if (src.Contains("skill")) return "Skillmod";
+                if (src.Contains("hero", StringComparison.OrdinalIgnoreCase)) return "Hero";
+                if (src.Contains("heroine", StringComparison.OrdinalIgnoreCase)) return "Heroine";
+                if (src.Contains("surv", StringComparison.OrdinalIgnoreCase)) return "Survivor";
+                if (src.Contains("skill", StringComparison.OrdinalIgnoreCase)) return "Skillmod";
             }
             return "Unknown";
         }
 
         private static string GetZombieClassFromImage(IElement cell)
         {
-            var img = cell.QuerySelector("img");
-            if (img != null)
-            {
-                var src = img.GetAttribute("src") ?? "";
-                if (src.Contains("fast")) return "Fast";
-                if (src.Contains("hunter")) return "Hunter";
-                if (src.Contains("nemesis")) return "Nemesis";
-                if (src.Contains("tesla")) return "Tesla";
-                if (src.Contains("classic")) return "Classic";
-                if (src.Contains("voodo")) return "Voodoo";
-            }
-            return "Unknown";
+            var link = cell.QuerySelector("a");
+            var title = link?.GetAttribute("title");
+            return title ?? "Неизвестно";
         }
     }
 }
