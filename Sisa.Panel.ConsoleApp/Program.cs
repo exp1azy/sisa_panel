@@ -7,7 +7,7 @@
             var client = new SisaPanelClient();
 
             //var bans = await client.GetBansAsync();
-            //var chatBans = await client.GetChatBansAsync(1, 20);
+            var chatBans = await client.GetChatBansAsync(1, 20);
             //var chatLog = await client.GetChatLogAsync();
             //var admins = await client.GetAdminsAsync();
             //var liveStatus = await client.GetLiveStatusAsync();

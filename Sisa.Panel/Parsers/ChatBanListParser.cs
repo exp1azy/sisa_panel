@@ -54,7 +54,7 @@ namespace Sisa.Panel.Parsers
                 if (cells.Length >= 6)
                 {
                     banEntry.Date = cells[1].TextContent;
-                    banEntry.PlayerName = cells[2].TextContent;
+                    banEntry.PlayerName = cells[2].TextContent.Trim();
                     banEntry.Country = cells[2].ExtractImgAltAttribute();
                     banEntry.AdminName = cells[3].TextContent;
                     banEntry.BanType = cells[4].TextContent;
