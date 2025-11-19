@@ -284,7 +284,7 @@ namespace Sisa.Panel.Parsers
                     var cells = row.GetTableCells();
                     if (cells.Length < 2) continue;
 
-                    var label = cells[0].TextContent;
+                    var label = cells[0].TextContent.Trim();
                     var valueText = cells[1].TextContent;
                     var cleanValue = valueText.Replace(" ", "");
 

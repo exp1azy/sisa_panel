@@ -16,10 +16,10 @@
             var pStats = await client.GetPlayerStatsAsync();
             //var weapons = await client.GetWeaponStatsAsync();
             //var weapon = await client.GetWeaponStatsAsync(weapons.Weapons[0].Wid);
-            //var hStats = await client.GetHumanTopPlayersAsync();
+            var hStats = await client.GetHumanTopPlayersAsync();
             //var zStats = await client.GetZombieTopPlayersAsync();
             //var maps = await client.GetMapStatsAsync();      
-            var search = await client.SearchAsync("gaina");
+            var search = await client.SearchAsync("STEAM_0:0:874847452", false);
             var player = await client.GetPlayerAsync(search[0].Uid);
             var contest = await client.GetContestAsync();
             var history = await client.GetContestHistoryAsync(2, 20);

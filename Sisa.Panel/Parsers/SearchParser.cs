@@ -21,6 +21,10 @@ namespace Sisa.Panel.Parsers
             foreach (var row in table.GetTableRows())
             {
                 var cells = row.GetTableCells();
+
+                if (cells.Count <= 1)
+                    return entries.AsReadOnly();
+
                 var entry = new PlayerSearchEntry
                 {
                     Country = cells[1].ExtractImgAltAttribute()
