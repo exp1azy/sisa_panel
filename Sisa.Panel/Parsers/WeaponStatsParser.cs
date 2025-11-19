@@ -26,21 +26,15 @@ namespace Sisa.Panel.Parsers
                 {
                     var entry = new WeaponStatsEntry
                     {
-                        RatingPosition = ParseInt(cells[0].GetTextContent())
+                        RatingPosition = ParseInt(cells[0].TextContent),
+                        Country = cells[1].ExtractImgAltAttribute(),
+                        Name = cells[1].ExtractLinkText().Trim(),
+                        Shots = ParseInt(GetSpanTitleValue(cells[2], "Выстрелов")),
+                        Hits = ParseInt(GetSpanTitleValue(cells[3], "Попаданий"))
                     };
 
-                    var flagImg = cells[1].QuerySelector("img");
-                    var src = flagImg.GetAttribute("alt") ?? "";
-                    entry.Country = src.Trim();
-
-                    var link = cells[1].QuerySelector("a");
-                    entry.Name = link.GetTextContent();
-
-                    entry.Shots = ParseInt(GetSpanTitleValue(cells[2], "Выстрелов"));
-                    entry.Hits = ParseInt(GetSpanTitleValue(cells[3], "Попаданий"));
-
                     var progressDiv = cells[4].QuerySelector("div.taskProgress");
-                    var accuracyText = progressDiv.GetTextContent();
+                    var accuracyText = progressDiv.TextContent;
                     _ = int.TryParse(accuracyText, out int accuracy);
                     entry.Accuracy = accuracy;
 
@@ -63,7 +57,7 @@ namespace Sisa.Panel.Parsers
         private static string GetSpanTitleValue(IElement cell, string title)
         {
             var span = cell.QuerySelector($"span[title='{title}']");
-            return span?.GetTextContent() ?? cell.GetTextContent();
+            return span?.TextContent ?? cell.TextContent;
         }
 
         private static int ParseInt(string value)

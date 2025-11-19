@@ -115,7 +115,7 @@ namespace Sisa.Panel.Parsers
         private static string GetTextContent(IElement element)
         {
             var span = element.QuerySelector("span");
-            return span?.GetTextContent() ?? element.GetTextContent();
+            return span?.TextContent ?? element.TextContent;
         }
 
         private static int ParseInt(string value)

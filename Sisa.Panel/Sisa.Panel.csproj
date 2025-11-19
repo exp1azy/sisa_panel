@@ -13,8 +13,8 @@
 	<RepositoryUrl>https://github.com/exp1azy/sisa_panel</RepositoryUrl>
 	<PackageTags>sisa;panel;lan-game;cso;zombie;cszero;mod;cs</PackageTags>
 	<PackageProjectUrl>https://github.com/exp1azy/sisa_panel</PackageProjectUrl>
-	<Version>1.0.4</Version>
-	<PackageReleaseNotes>net10.0</PackageReleaseNotes>
+	<Version>1.1.0</Version>
+	<PackageReleaseNotes>доп. отладка</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

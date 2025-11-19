@@ -18,18 +18,18 @@ namespace Sisa.Panel.Parsers
                 var nameElement = box.QuerySelector("span.charts-label1");
 
                 if (nameElement != null)
-                    mapInfo.Name = nameElement.GetTextContent();
+                    mapInfo.Name = nameElement.TextContent;
 
                 var table = box.QuerySelector("table.table.table-condensed.table-hover.table-responsive");
                 if (table == null)
                     continue;
 
-                foreach (var row in table.QuerySelectorAll("tr"))
+                foreach (var row in table.GetTableRows())
                 {
                     var cells = row.GetTableCells();
 
-                    var header = cells[0].GetTextContent();
-                    var valueText = cells[1].GetTextContent();
+                    var header = cells[0].TextContent;
+                    var valueText = cells[1].TextContent;
                     _ = int.TryParse(valueText, out int value);
 
                     switch (header)

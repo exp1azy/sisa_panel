@@ -53,7 +53,7 @@ namespace Sisa.Panel.Parsers
 
                 var cols = row.GetTableCells();
                 if (cols.Length < 7)
-                    return null;
+                    return bans;
 
                 var dataTarget = row.GetAttribute("data-target");
 
@@ -75,12 +75,12 @@ namespace Sisa.Panel.Parsers
                 var ban = new BanEntry
                 {
                     Id = banId,
-                    Date = cols[1].GetTextContent(),
+                    Date = cols[1].TextContent.Trim(),
                     PlayerName = ExtractPlayerName(cols[2]),
-                    Country = ExtractCountry(cols[2]),
-                    AdminName = cols[3].GetTextContent(),
-                    Reason = cols[4].GetTextContent(),
-                    Duration = cols[5].GetTextContent(),
+                    Country = cols[2].ExtractImgAltAttribute(),
+                    AdminName = cols[3].TextContent.Trim(),
+                    Reason = cols[4].TextContent,
+                    Duration = cols[5].TextContent,
                     HasDemo = !cols[6].TextContent.Contains("нет демо"),
                     Client = banType
                 };
@@ -89,7 +89,7 @@ namespace Sisa.Panel.Parsers
                 {
                     var modal = document.QuerySelector($"#ban-{banId}");
                     if (modal == null)
-                        return null;
+                        return bans;
 
                     var modalData = new BanEntry();
 
@@ -97,7 +97,7 @@ namespace Sisa.Panel.Parsers
                     if (steamIdRow != null)
                     {
                         var steamIdCell = steamIdRow.QuerySelector(".span6");
-                        modalData.SteamId = steamIdCell.GetTextContent();
+                        modalData.SteamId = steamIdCell.TextContent.Trim();
                     }
 
                     var steamProfileRow = modal.QuerySelector(".row-fluid:has(.span5:contains('Steam профиль'))");
@@ -112,14 +112,14 @@ namespace Sisa.Panel.Parsers
                     if (expiresRow != null)
                     {
                         var expiresCell = expiresRow.QuerySelector(".span6");
-                        modalData.ExpiresDate = expiresCell.GetTextContent();
+                        modalData.ExpiresDate = expiresCell.TextContent.Trim();
                     }
 
                     var violationsRow = modal.QuerySelector(".row-fluid:has(.span5:contains('Предыдущих нарушений'))");
                     if (violationsRow != null)
                     {
                         var violationsCell = violationsRow.QuerySelector(".span6");
-                        if (int.TryParse(violationsCell.GetTextContent(), out int violations))
+                        if (int.TryParse(violationsCell.TextContent, out int violations))
                             modalData.PreviousViolations = violations;
                     }
 
@@ -127,7 +127,7 @@ namespace Sisa.Panel.Parsers
                     if (serverRow != null)
                     {
                         var serverCell = serverRow.QuerySelector(".span6");
-                        modalData.Server = serverCell.GetTextContent();
+                        modalData.Server = serverCell.TextContent.Trim();
                     }
 
                     if (modalData != null)
@@ -155,19 +155,6 @@ namespace Sisa.Panel.Parsers
                 .Where(t => !string.IsNullOrEmpty(t));
 
             return string.Join(" ", textNodes).Trim();
-        }
-
-        private static string ExtractCountry(IElement playerCell)
-        {
-            var flagImg = playerCell.QuerySelector("img");
-
-            if (flagImg != null)
-            {
-                var alt = flagImg.GetAttribute("alt");
-                return alt ?? "Unknown";
-            }
-
-            return "Unknown";
         }
 
         private static string ExtractSteamProfile(IElement steamProfileCell)

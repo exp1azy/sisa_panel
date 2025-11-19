@@ -50,15 +50,15 @@ namespace Sisa.Panel.Parsers
                 if (!string.IsNullOrEmpty(dataTarget) && dataTarget.StartsWith('#'))
                     banEntry.Id = dataTarget[1..];
 
-                var cells = row.QuerySelectorAll("td");
+                var cells = row.GetTableCells();
                 if (cells.Length >= 6)
                 {
-                    banEntry.Date = cells[1].GetTextContent();
-                    banEntry.PlayerName = cells[2].GetTextContent();
-                    banEntry.Country = ParseCountry(cells[2]);
-                    banEntry.AdminName = cells[3].GetTextContent();
-                    banEntry.BanType = cells[4].GetTextContent();
-                    banEntry.Duration = cells[5].GetTextContent();
+                    banEntry.Date = cells[1].TextContent;
+                    banEntry.PlayerName = cells[2].TextContent;
+                    banEntry.Country = cells[2].ExtractImgAltAttribute();
+                    banEntry.AdminName = cells[3].TextContent;
+                    banEntry.BanType = cells[4].TextContent;
+                    banEntry.Duration = cells[5].TextContent;
                 }
 
                 ParseHiddenDetails(row, banEntry);
@@ -70,20 +70,6 @@ namespace Sisa.Panel.Parsers
             return bans;
         }
 
-        private static string ParseCountry(IElement cell)
-        {
-            var flagImg = cell.QuerySelector("img");
-            if (flagImg != null)
-            {
-                var altText = flagImg.GetAttribute("alt");
-
-                if (!string.IsNullOrEmpty(altText) && altText != "United States")
-                    return altText;
-            }
-
-            return "Unknown";
-        }
-
         private static void ParseHiddenDetails(IElement row, ChatBanEntry entry)
         {
             var hiddenRow = row.NextElementSibling;
@@ -92,38 +78,38 @@ namespace Sisa.Panel.Parsers
             var detailsTable = hiddenRow.QuerySelector("table.table-condensed");
             if (detailsTable == null) return;
 
-            foreach (var detailRow in detailsTable.QuerySelectorAll("tr"))
+            foreach (var detailRow in detailsTable.GetTableRows())
             {
                 var cells = detailRow.GetTableCells();
                 if (cells.Length >= 2)
                 {
-                    var key = cells[0].GetTextContent();
+                    var key = cells[0].TextContent;
                     var value = cells[1];
 
                     switch (key)
                     {
                         case "Игрок":
                             if (string.IsNullOrEmpty(entry.PlayerName))
-                                entry.PlayerName = value.GetTextContent();
+                                entry.PlayerName = value.TextContent;
                             break;
                         case "ID Номер":
-                            entry.SteamId = value.GetTextContent();
+                            entry.SteamId = value.TextContent;
                             break;
                         case "Steam профиль":
                             var link = value.GetSteamProfileElement();
                             entry.SteamProfile = link?.GetAttribute("href") ?? string.Empty;
                             break;
                         case "Добавлен":
-                            entry.Date = value.GetTextContent();
+                            entry.Date = value.TextContent;
                             break;
                         case "Время бана":
-                            entry.BanTime = value.GetTextContent();
+                            entry.BanTime = value.TextContent;
                             break;
                         case "Истекает":
-                            entry.Expires = value.GetTextContent();
+                            entry.Expires = value.TextContent;
                             break;
                         case "Предыдущих нарушений":
-                            if (int.TryParse(value.GetTextContent(), out int violations))
+                            if (int.TryParse(value.TextContent, out int violations))
                                 entry.PreviousViolations = violations;
                             break;
                     }

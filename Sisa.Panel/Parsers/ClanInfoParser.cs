@@ -47,7 +47,7 @@ namespace Sisa.Panel.Parsers
             generalInfo.Actions = actions;
 
             var stats = document.QuerySelectorAll(".smallstat .value.count");
-            var statValues = stats.Select(s => s.GetTextContent()).ToArray();
+            var statValues = stats.Select(s => s.TextContent).ToArray();
 
             if (statValues.Length >= 9)
             {
@@ -105,9 +105,9 @@ namespace Sisa.Panel.Parsers
                     if (actionIcon != null)
                         actionEntry.Action = GetActionTypeFromIcon(actionIcon.ClassList);
 
-                    actionEntry.Member = cells[2].GetTextContent();
+                    actionEntry.Member = cells[2].TextContent;
 
-                    var dateText = cells[3].GetTextContent();
+                    var dateText = cells[3].TextContent;
                     actionEntry.Date = dateText.ParseToDateOnly();
 
                     actions.Add(actionEntry);
@@ -140,7 +140,7 @@ namespace Sisa.Panel.Parsers
         {
             var members = new List<ClanPlayerEntry>();
 
-            var memberTable = document.QuerySelectorAll("table.table-condensed").LastOrDefault();
+            var memberTable = document.QuerySelectorAll("table.table-condensed")[^1];
             if (memberTable == null) return members;
 
             foreach (var row in memberTable.GetTableRows())
@@ -151,7 +151,7 @@ namespace Sisa.Panel.Parsers
                     var member = new ClanPlayerEntry();
 
                     var nameCell = cells[1];
-                    member.Name = nameCell.GetTextContent();
+                    member.Name = nameCell.TextContent.Trim();
 
                     var adminIcon = nameCell.QuerySelector("i.fa-star");
                     member.IsAdmin = adminIcon != null;
@@ -162,15 +162,15 @@ namespace Sisa.Panel.Parsers
                     var levelSpan = cells[2].QuerySelector("span.lvlx");
                     if (levelSpan != null)
                     {
-                        var levelText = levelSpan.GetTextContent();
+                        var levelText = levelSpan.TextContent;
 
                         if (int.TryParse(levelText, out int level))
                             member.Level = level;
                     }
 
-                    member.Online = cells[3].GetTextContent();
+                    member.Online = cells[3].TextContent;
 
-                    var lastActivityText = cells[4].GetTextContent();
+                    var lastActivityText = cells[4].TextContent;
                     member.LastActivity = lastActivityText.ParseToDateTime();
 
                     members.Add(member);

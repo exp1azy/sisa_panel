@@ -21,21 +21,20 @@ namespace Sisa.Panel.Parsers
             foreach (var row in table.GetTableRows())
             {
                 var cells = row.GetTableCells();
-                var entry = new PlayerSearchEntry();
+                var entry = new PlayerSearchEntry
+                {
+                    Country = cells[1].ExtractImgAltAttribute()
+                };
 
-                var flagImg = cells[1].QuerySelector("img");
-                entry.Country = flagImg.GetAttribute("alt") ?? "";
-
-                var link = cells[1].QuerySelector("a");
-                var name = link.GetTextContent();
+                var name = cells[1].ExtractLinkText();
                 name = ParserRegex.WhitespaceCleanupPattern().Replace(name, " ").Trim();
                 entry.Name = name;
 
                 var rankSpan = cells[2].QuerySelector("span[title='Rank']");
-                entry.Rank = rankSpan?.GetTextContent() ?? "N/A";
+                entry.Rank = rankSpan?.TextContent ?? "N/A";
 
                 var levelSpan = cells[3].QuerySelector("span.lvlx");
-                var levelText = levelSpan.GetTextContent();
+                var levelText = levelSpan.TextContent;
                 _ = int.TryParse(levelText, out int level);
                 entry.Level = level;
 
@@ -51,7 +50,7 @@ namespace Sisa.Panel.Parsers
                 entry.MVPs = ParseInt(GetSpanTitleValue(cells[9], "Л.И."));
 
                 var onlineSpan = cells[10].QuerySelector("span[title='Онлайн']");
-                entry.Online = onlineSpan?.GetTextContent() ?? "Unknown";
+                entry.Online = onlineSpan?.TextContent ?? "Unknown";
 
                 if (entry != null)
                     entries.Add(entry);
@@ -63,7 +62,7 @@ namespace Sisa.Panel.Parsers
         private static string GetSpanTitleValue(IElement cell, string title)
         {
             var span = cell.QuerySelector($"span[title='{title}']");
-            return span?.GetTextContent() ?? cell.GetTextContent();
+            return span?.TextContent ?? cell.TextContent;
         }
 
         private static int ParseInt(string value)

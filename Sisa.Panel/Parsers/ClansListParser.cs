@@ -38,7 +38,7 @@ namespace Sisa.Panel.Parsers
 
                 if (clanLink != null)
                 {
-                    clan.ClanName = clanLink.GetTextContent();
+                    clan.ClanName = clanLink.TextContent;
 
                     var href = clanLink.GetAttribute("href");
                     var idMatch = ParserRegex.UrlIdExtractorPattern().Match(href);
@@ -51,7 +51,7 @@ namespace Sisa.Panel.Parsers
                 }
                 else
                 {
-                    clan.ClanName = cells[1].GetTextContent();
+                    clan.ClanName = cells[1].TextContent;
                     clan.Id = -1;
                 }
 
@@ -72,7 +72,7 @@ namespace Sisa.Panel.Parsers
 
                 clan.Actions = actions;
 
-                var playersText = cells[3].GetTextContent();
+                var playersText = cells[3].TextContent;
 
                 if (int.TryParse(playersText, out int playersCount))
                     clan.PlayersCount = playersCount;

@@ -22,20 +22,19 @@ namespace Sisa.Panel.Parsers
                 var cells = row.GetTableCells();
                 var entry = new ContestHistoryEntry();
 
-                var numberText = cells[0].GetTextContent();
+                var numberText = cells[0].TextContent;
                 _ = int.TryParse(numberText, out int number);
                 entry.Number = number;
 
-                var dateText = cells[1].GetTextContent();
+                var dateText = cells[1].TextContent;
                 entry.EndsAt = dateText.ParseToDateTime();
 
-                var link = cells[2].QuerySelector("a");
-                var name = link.GetTextContent();
+                var name = cells[2].ExtractLinkText();
                 name = WebUtility.HtmlDecode(name);
                 name = ParserRegex.WhitespaceCleanupPattern().Replace(name, " ").Trim();
                 entry.Winner = name;
 
-                var giftText = cells[3].GetTextContent();
+                var giftText = cells[3].TextContent;
                 giftText = WebUtility.HtmlDecode(giftText);
                 giftText = ParserRegex.WhitespaceCleanupPattern().Replace(giftText, " ").Trim();
                 entry.Gift = giftText;

@@ -67,14 +67,11 @@ namespace Sisa.Panel.Parsers
                 if (cells.Length < 3)
                     continue;
 
-                var flagImg = cells[1].QuerySelector("img");
-                var country = flagImg?.GetAttribute("alt") ?? "Неизвестно";
-
-                var nameLink = cells[1].QuerySelector("a");
-                var name = nameLink?.GetTextContent();
+                var country = cells[1].ExtractImgAltAttribute();
+                var name = cells[1].ExtractLinkText();
 
                 if (string.IsNullOrEmpty(name))
-                    name = cells[1].GetTextContent();
+                    name = cells[1].TextContent;
 
                 var dateText = cells[2].TextContent;
                 var registeredAt = dateText.ParseToDateTime();
@@ -82,7 +79,7 @@ namespace Sisa.Panel.Parsers
                 var participant = new ContestParticipant
                 {
                     Country = country,
-                    Name = name ?? "Неизвестно",
+                    Name = name.Trim() ?? "Неизвестно",
                     RegisteredAt = registeredAt
                 };
 

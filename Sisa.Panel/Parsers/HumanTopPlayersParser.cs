@@ -40,7 +40,7 @@ namespace Sisa.Panel.Parsers
                 WasInfected = ParseStatValue(section, "Был заражен"),
                 Suicides = ParseStatValue(section, "Самоубийств"),
                 Damage = ParseStatValueLong(section, "Урон"),
-                Players = ParsePlayers(document, "hm_human")
+                Players = ParsePlayers(document, "hm_human").ToArray()
             };
         }
 
@@ -60,7 +60,7 @@ namespace Sisa.Panel.Parsers
                 Games = ParseStatValue(section, "Игр"),
                 Suicides = ParseStatValue(section, "Самоубийств"),
                 Damage = ParseStatValueLong(section, "Урон"),
-                Players = ParsePlayers(document, "hm_survivor")
+                Players = ParsePlayers(document, "hm_survivor").ToArray()
             };
         }
 
@@ -82,7 +82,7 @@ namespace Sisa.Panel.Parsers
                 WasInfected = ParseStatValue(section, "Был заражен"),
                 Suicides = ParseStatValue(section, "Самоубийств"),
                 Damage = ParseStatValueLong(section, "Урон"),
-                Players = ParsePlayers(document, "hm_heroine")
+                Players = ParsePlayers(document, "hm_heroine").ToArray()
             };
         }
 
@@ -102,7 +102,7 @@ namespace Sisa.Panel.Parsers
                 WasInfected = ParseStatValue(section, "Был заражен"),
                 Suicides = ParseStatValue(section, "Самоубийств"),
                 Damage = ParseStatValueLong(section, "Урон"),
-                Players = ParsePlayers(document, "hm_skillmod")
+                Players = ParsePlayers(document, "hm_skillmod").ToArray()
             };
         }
 
@@ -122,7 +122,7 @@ namespace Sisa.Panel.Parsers
                 WasInfected = ParseStatValue(section, "Был заражен"),
                 Suicides = ParseStatValue(section, "Самоубийств"),
                 Damage = ParseStatValueLong(section, "Урон"),
-                Players = ParsePlayers(document, "hm_girlmod")
+                Players = ParsePlayers(document, "hm_girlmod").ToArray()
             };
         }
 
@@ -144,11 +144,11 @@ namespace Sisa.Panel.Parsers
                 WasInfected = ParseStatValue(section, "Был заражен"),
                 Suicides = ParseStatValue(section, "Самоубийств"),
                 Damage = ParseStatValueLong(section, "Урон"),
-                Players = ParsePlayers(document, "hm_hero")
+                Players = ParsePlayers(document, "hm_hero").ToArray()
             };
         }
 
-        private static HumanTopPlayerEntry[] ParsePlayers(IDocument document, string sectionId)
+        private static List<HumanTopPlayerEntry> ParsePlayers(IDocument document, string sectionId)
         {
             var players = new List<HumanTopPlayerEntry>();
             var section = document.QuerySelector($"div[id='{sectionId}']");
@@ -161,13 +161,13 @@ namespace Sisa.Panel.Parsers
                     foreach (var row in table.GetTableRows())
                     {
                         var cells = row.GetTableCells();
-                        if (cells.Length < 6) return null;
+                        if (cells.Length < 6) return players;
 
                         var player = new HumanTopPlayerEntry
                         {
                             RatingPosition = ParseCellValueInt(row, 0),
-                            Name = ParsePlayerName(cells[1]),
-                            Country = ParseCountry(cells[1]),
+                            Name = cells[1].ExtractLinkText().Trim(),
+                            Country = cells[1].ExtractImgAltAttribute(),
                             ZombieKills = ParseCellValueInt(row, 2),
                             Damage = ParseCellValueLong(row, 3),
                             Deaths = ParseCellValueInt(row, 5),
@@ -183,7 +183,7 @@ namespace Sisa.Panel.Parsers
                 }
             }
 
-            return players.ToArray();
+            return players;
         }
 
         private static long ParseCellValueLong(IElement row, int cellIndex)
@@ -191,7 +191,7 @@ namespace Sisa.Panel.Parsers
             var cells = row.GetTableCells();
             if (cells.Length > cellIndex)
             {
-                var text = cells[cellIndex].GetTextContent();
+                var text = cells[cellIndex].TextContent;
 
                 if (long.TryParse(text, out long value))
                     return value;
@@ -205,7 +205,7 @@ namespace Sisa.Panel.Parsers
             var cells = row.GetTableCells();
             if (cells.Length > cellIndex)
             {
-                var text = cells[cellIndex].GetTextContent();
+                var text = cells[cellIndex].TextContent;
 
                 if (int.TryParse(text, out int value))
                     return value;
@@ -241,7 +241,7 @@ namespace Sisa.Panel.Parsers
             {
                 var valueCell = statRow.QuerySelector("td:last-child");
 
-                if (valueCell != null && int.TryParse(valueCell.GetTextContent(), out int value))
+                if (valueCell != null && int.TryParse(valueCell.TextContent, out int value))
                     return value;
             }
 
@@ -257,24 +257,11 @@ namespace Sisa.Panel.Parsers
             {
                 var valueCell = statRow.QuerySelector("td:last-child");
 
-                if (valueCell != null && long.TryParse(valueCell.GetTextContent(), out long value))
+                if (valueCell != null && long.TryParse(valueCell.TextContent, out long value))
                     return value;
             }
 
             return default;
-        }
-
-        private static string ParsePlayerName(IElement cell)
-        {
-            var link = cell.QuerySelector("a");
-            return link?.GetTextContent() ?? cell.GetTextContent();
-        }
-
-        private static string ParseCountry(IElement element)
-        {
-            var img = element.QuerySelector("img");
-            var alt = img?.GetAttribute("alt");
-            return alt ?? "Unknown";
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Sisa.Panel.Parsers
         [GeneratedRegex(@"(\d+)\s*/\s*(\d+)")]
         public static partial Regex TimeLeftPattern();
 
-        [GeneratedRegex(@"(\d+)\s+игроков")]
+        [GeneratedRegex(@"(\d+)\s+игрок(а|ов)?")]
         public static partial Regex PlayerCountPattern();
 
         [GeneratedRegex(@"(\d+)\s*:\s*(\d+)")]

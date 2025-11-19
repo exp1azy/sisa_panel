@@ -36,16 +36,16 @@ namespace Sisa.Panel.Parsers
                 var cells = row.GetTableCells();
                 if (cells.Length >= 2)
                 {
-                    switch (cells[0].GetTextContent())
+                    switch (cells[0].TextContent)
                     {
                         case "Карта":
-                            status.CurrentMap = cells[1].GetTextContent();
+                            status.CurrentMap = cells[1].TextContent;
                             break;
                         case "Текущий мод":
-                            status.CurrentMod = cells[1].GetTextContent();
+                            status.CurrentMod = cells[1].TextContent;
                             break;
                         case "Игроков":
-                            var playerText = cells[2].GetTextContent();
+                            var playerText = cells[2].TextContent;
                             var playerMatch = ParserRegex.TimeLeftPattern().Match(playerText);
 
                             if (playerMatch.Success)
@@ -56,12 +56,12 @@ namespace Sisa.Panel.Parsers
                             break;
                         case "Осталось времени":
                             if (cells.Length < 3)
-                                status.TimeLeft = cells[1].GetTextContent();
+                                status.TimeLeft = cells[1].TextContent;
                             else
-                                status.TimeLeft = cells[2].GetTextContent();
+                                status.TimeLeft = cells[2].TextContent  ;
                             break;
                         case "Босс-раунд":
-                            status.BossRoundAvailable = cells[1].GetTextContent() == "Доступен";
+                            status.BossRoundAvailable = cells[1].TextContent == "Доступен";
                             break;
                     }
                 }
@@ -94,19 +94,11 @@ namespace Sisa.Panel.Parsers
                         player.Team = PlayerTeam.Human;
 
                     var playerCell = cells[0];
-                    var flagImg = playerCell.QuerySelector("img");
+                    player.Country = playerCell.ExtractImgAltAttribute();
+                    player.PlayerName = playerCell.ExtractLinkText().Trim();
+                    player.SteamId = cells[1].TextContent;
 
-                    if (flagImg != null)
-                        player.Country = flagImg.GetAttribute("alt") ?? "Unknown";
-
-                    var nameLink = playerCell.QuerySelector("a");
-
-                    if (nameLink != null)
-                        player.PlayerName = nameLink.GetTextContent();
-
-                    player.SteamId = cells[1].GetTextContent();
-
-                    var fragsText = cells[2].GetTextContent();
+                    var fragsText = cells[2].TextContent;
                     var fragsMatch = ParserRegex.FragsPattern().Match(fragsText);
 
                     if (fragsMatch.Success)
@@ -115,9 +107,9 @@ namespace Sisa.Panel.Parsers
                         player.Deaths = int.Parse(fragsMatch.Groups[2].Value);
                     }
 
-                    player.PlayTime = cells[4].GetTextContent();
+                    player.PlayTime = cells[4].TextContent;
 
-                    if (int.TryParse(cells[5].GetTextContent(), out int ping))
+                    if (int.TryParse(cells[5].TextContent, out int ping))
                         player.Ping = ping;
 
                     var levelElement = cells[6].QuerySelector("span.lvlx");
@@ -152,13 +144,13 @@ namespace Sisa.Panel.Parsers
                     else if (header.ClassList.Contains("humans_head"))
                         teamSummary.Team = PlayerTeam.Human;
 
-                    var teamText = cells[0].GetTextContent();
+                    var teamText = cells[0].TextContent;
                     var playerCountMatch = ParserRegex.PlayerCountPattern().Match(teamText);
 
                     if (playerCountMatch.Success)
                         teamSummary.PlayerCount = int.Parse(playerCountMatch.Groups[1].Value);
 
-                    var roundsText = cells[1].GetTextContent();
+                    var roundsText = cells[1].TextContent;
 
                     if (int.TryParse(roundsText, out int rounds))
                         teamSummary.WonRounds = rounds;
@@ -225,7 +217,7 @@ namespace Sisa.Panel.Parsers
 
             foreach (var mapElement in document.QuerySelectorAll("#lastm .box-content .title"))
             {
-                var mapName = mapElement.GetTextContent();
+                var mapName = mapElement.TextContent.Trim();
 
                 if (!string.IsNullOrEmpty(mapName))
                     previousMaps.Add(mapName);

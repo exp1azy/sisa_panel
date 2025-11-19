@@ -25,9 +25,9 @@ namespace Sisa.Panel.Parsers
 
                 var player = new PlayerStatEntry()
                 {
-                    RatingPosition = ParseRatingPosition(cells[0]),
+                    RatingPosition = ParseElementTextToInt(cells[0]),
                     Uid = ParseUid(cells[1]),
-                    Country = ParseCountry(cells[1]),
+                    Country = cells[1].ExtractImgAltAttribute(),
                     Name = ParseName(cells[1]),
                     Level = ParseLevel(cells[2]),
                     Exp = ParseExp(cells[3]),
@@ -46,9 +46,9 @@ namespace Sisa.Panel.Parsers
             return stats;
         }
 
-        private static int ParseRatingPosition(IElement cell)
+        private static int ParseElementTextToInt(IElement cell)
         {
-            var positionStr = cell.GetTextContent();
+            var positionStr = cell.TextContent;
             _ = int.TryParse(positionStr, out int position);
 
             return position;
@@ -69,24 +69,16 @@ namespace Sisa.Panel.Parsers
             return 0;
         }
 
-        private static string ParseCountry(IElement cell)
-        {
-            var flagImg = cell.QuerySelector("img");
-            var alt = flagImg?.GetAttribute("alt");
-
-            return alt ?? "Unknown";
-        }
-
         private static string ParseName(IElement cell)
         {
-            var textContent = cell.GetTextContent();
+            var textContent = cell.TextContent;
             return ParserRegex.WhitespaceCleanupPattern().Replace(textContent, " ").Trim();
         }
 
         private static int ParseLevel(IElement cell)
         {
             var levelSpan = cell.QuerySelector("span.lvlx");
-            var levelText = levelSpan.GetTextContent();
+            var levelText = levelSpan.TextContent;
             _ = int.TryParse(levelText, out int level);
             
             return level;
@@ -98,9 +90,9 @@ namespace Sisa.Panel.Parsers
             string? exp;
 
             if (expSpan != null)
-                exp = expSpan.GetTextContent();
+                exp = expSpan.TextContent;
             else
-                exp = cell.GetTextContent();
+                exp = cell.TextContent;
 
             _ = int.TryParse(exp, out int expValue);
             return expValue;
@@ -112,9 +104,9 @@ namespace Sisa.Panel.Parsers
             string? killsStr;
 
             if (killsSpan != null)
-                killsStr = killsSpan.GetTextContent();
+                killsStr = killsSpan.TextContent;
             else
-                killsStr = cell.GetTextContent();
+                killsStr = cell.TextContent;
 
             _ = int.TryParse(killsStr, out int zombieKills);
             return zombieKills;
@@ -126,9 +118,9 @@ namespace Sisa.Panel.Parsers
             string? assistsStr;
 
             if (assistsSpan != null)
-                assistsStr = assistsSpan.GetTextContent();
+                assistsStr = assistsSpan.TextContent;
             else
-                assistsStr = cell.GetTextContent();
+                assistsStr = cell.TextContent;
 
             _ = int.TryParse(assistsStr, out int assists);
             return assists;
@@ -140,9 +132,9 @@ namespace Sisa.Panel.Parsers
             string? deathsStr;
 
             if (deathsSpan != null)
-                deathsStr = deathsSpan.GetTextContent();
+                deathsStr = deathsSpan.TextContent;
             else
-                deathsStr = cell.GetTextContent();
+                deathsStr = cell.TextContent;
 
             _ = int.TryParse(deathsStr, out int deaths);
            return deaths;
@@ -154,9 +146,9 @@ namespace Sisa.Panel.Parsers
             string? kdStr;
 
             if (kdSpan != null)
-                kdStr = kdSpan.GetTextContent();
+                kdStr = kdSpan.TextContent;
             else
-                kdStr = cell.GetTextContent();
+                kdStr = cell.TextContent;
 
             _ = float.TryParse(kdStr, NumberStyles.Float, CultureInfo.InvariantCulture, out float kd);
             return kd;
@@ -168,9 +160,9 @@ namespace Sisa.Panel.Parsers
             string? mvpsStr;
 
             if (mvpsSpan != null)
-                mvpsStr = mvpsSpan.GetTextContent();
+                mvpsStr = mvpsSpan.TextContent;
             else
-                mvpsStr = cell.GetTextContent();
+                mvpsStr = cell.TextContent;
 
             _ = int.TryParse(mvpsStr, out int mvps);
             return mvps;

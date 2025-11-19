@@ -25,31 +25,25 @@ namespace Sisa.Panel.Parsers
 
                 var entry = new ChatLogEntry
                 {
-                    Time = columns[0].GetTextContent(),
-                    SteamId = columns[1].GetTextContent(),
-                    Class = columns[2].QuerySelector("span")?.GetTextContent() ?? "Unknown",
+                    Time = columns[0].TextContent,
+                    SteamId = columns[1].TextContent.Trim(),
+                    Class = columns[2].QuerySelector("span")?.TextContent ?? "Unknown",
                 };
 
                 var levelElement = columns[3].QuerySelector("span");
                 if (levelElement != null)
                 {
-                    var levelText = levelElement.GetTextContent();
+                    var levelText = levelElement.TextContent;
 
                     if (int.TryParse(levelText, out int level))
                         entry.Level = level;
                 }
 
-                var playerColumn = columns[4];
-
-                var flagImg = playerColumn.QuerySelector("img");
-                if (flagImg != null)
-                    entry.Country = flagImg.GetAttribute("alt")?.Trim() ?? "Unknown";
-
-                var playerLink = playerColumn.QuerySelector("a");
-                entry.PlayerName = playerLink?.GetTextContent() ?? "Unknown";
+                entry.Country = columns[4].ExtractImgAltAttribute();
+                entry.PlayerName = columns[4].ExtractLinkText().Trim();
 
                 var messageElement = columns[5].QuerySelector("span.chatmessage");
-                entry.Message = messageElement?.GetTextContent() ?? columns[5].GetTextContent();
+                entry.Message = messageElement?.TextContent.Trim() ?? columns[5].TextContent.Trim();
 
                 messages.Add(entry);
             }

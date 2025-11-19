@@ -45,7 +45,7 @@ namespace Sisa.Panel.Parsers
                 {
                     foreach (var cell in row.GetTableCells())
                     {
-                        var text = cell.GetTextContent();
+                        var text = cell.TextContent;
                         if (text.Contains("Здоровье:"))
                             classInfo.Health = ParsePropertyValue(text, "Здоровье:");
                         else if (text.Contains("Скорость:"))
@@ -64,8 +64,8 @@ namespace Sisa.Panel.Parsers
                 var cells = row.GetTableCells();
                 if (cells.Length >= 2)
                 {
-                    var statName = cells[0].GetTextContent();
-                    var statValueText = cells[1].GetTextContent();
+                    var statName = cells[0].TextContent;
+                    var statValueText = cells[1].TextContent;
 
                     switch (statName)
                     {
@@ -99,22 +99,22 @@ namespace Sisa.Panel.Parsers
 
             var playersSection = document.QuerySelector($"div[id='{playersSectionId}']");
             if (playersSection != null)
-                classInfo.Players = ParseZombieTopPlayers(playersSection);
+                classInfo.Players = ParseZombieTopPlayers(playersSection).ToArray();
 
             return classInfo;
         }
 
-        private static ZombieTopPlayerEntry[] ParseZombieTopPlayers(IElement section)
+        private static List<ZombieTopPlayerEntry> ParseZombieTopPlayers(IElement section)
         {
             var players = new List<ZombieTopPlayerEntry>();
-
             var playersTable = section.QuerySelector("table.sortable");
-            if (playersTable == null) return players.ToArray();
+
+            if (playersTable == null) return players;
 
             foreach (var row in playersTable.GetTableRows())
             {
                 var cells = row.GetTableCells();
-                if (cells.Length < 7) return players.ToArray();
+                if (cells.Length < 7) return players;
 
                 ZombieTopPlayerEntry? player;
 
@@ -144,15 +144,14 @@ namespace Sisa.Panel.Parsers
                     };
                 }
 
-                var nickCell = cells[1];
-                player.Name = ParsePlayerName(nickCell);
-                player.Country = ParsePlayerCountry(nickCell);
+                player.Name = cells[1].ExtractLinkText().Trim();
+                player.Country = cells[1].ExtractImgAltAttribute();
 
                 if (player != null)
                     players.Add(player);
             }
 
-            return players.ToArray();
+            return players;
         }
 
         private static int ParsePropertyValue(string text, string propertyName)
@@ -179,32 +178,14 @@ namespace Sisa.Panel.Parsers
 
         private static int ParseCellValueInt(IElement cell)
         {
-            var text = cell.GetTextContent();
+            var text = cell.TextContent;
             return ParseIntValue(text);
         }
 
         private static long ParseCellValueLong(IElement cell)
         {
-            var text = cell.GetTextContent();
+            var text = cell.TextContent;
             return ParseLongValue(text);
-        }
-
-        private static string ParsePlayerName(IElement cell)
-        {
-            var link = cell.QuerySelector("a");
-            return link?.GetTextContent() ?? cell.GetTextContent();
-        }
-
-        private static string ParsePlayerCountry(IElement cell)
-        {
-            var flagImg = cell.QuerySelector("img");
-            if (flagImg != null)
-            {
-                var altText = flagImg.GetAttribute("alt") ?? "";
-                return altText.Replace("'", "").Trim();
-            }
-
-            return null;
         }
     }
 }
