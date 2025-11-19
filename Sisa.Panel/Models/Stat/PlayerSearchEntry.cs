@@ -6,6 +6,11 @@
     public class PlayerSearchEntry
     {
         /// <summary>
+        /// Идентификатор.
+        /// </summary>
+        public int Uid { get; set; }
+
+        /// <summary>
         /// Страна.
         /// </summary>
         public string Country { get; set; }

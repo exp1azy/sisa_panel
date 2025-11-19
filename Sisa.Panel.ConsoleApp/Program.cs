@@ -7,20 +7,20 @@
             var client = new SisaPanelClient();
 
             //var bans = await client.GetBansAsync();
-            var chatBans = await client.GetChatBansAsync(1, 20);
+            //var chatBans = await client.GetChatBansAsync(1, 20);
             //var chatLog = await client.GetChatLogAsync();
             //var admins = await client.GetAdminsAsync();
             //var liveStatus = await client.GetLiveStatusAsync();
             //var clans = await client.GetClansAsync();
             //var clan = await client.GetClanAsync(clans[0].Id);
-            //var playerStats = await client.GetPlayerStatsAsync();
+            var pStats = await client.GetPlayerStatsAsync();
             //var weapons = await client.GetWeaponStatsAsync();
             //var weapon = await client.GetWeaponStatsAsync(weapons.Weapons[0].Wid);
             //var hStats = await client.GetHumanTopPlayersAsync();
             //var zStats = await client.GetZombieTopPlayersAsync();
-            //var maps = await client.GetMapStatsAsync();
-            //var player = await client.GetPlayerAsync(26701);
-            //var search = await client.SearchAsync("player");
+            //var maps = await client.GetMapStatsAsync();      
+            var search = await client.SearchAsync("gaina");
+            var player = await client.GetPlayerAsync(search[0].Uid);
             var contest = await client.GetContestAsync();
             var history = await client.GetContestHistoryAsync(2, 20);
         }

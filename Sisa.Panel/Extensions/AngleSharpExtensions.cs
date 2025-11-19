@@ -1,4 +1,5 @@
 ﻿using AngleSharp.Dom;
+using Sisa.Panel.Parsers;
 
 namespace Sisa.Panel.Extensions
 {
@@ -38,6 +39,17 @@ namespace Sisa.Panel.Extensions
             {
                 var a = element.QuerySelector("a");
                 return a?.TextContent ?? element.TextContent;
+            }
+
+            public int ExtractUid()
+            {
+                var href = element.GetAttribute("href") ?? "";
+                var uidMatch = ParserRegex.UidPattern().Match(href);
+
+                if (uidMatch.Success && int.TryParse(uidMatch.Groups[1].Value, out int uid))
+                    return uid;
+
+                return 0;
             }
         }
     }

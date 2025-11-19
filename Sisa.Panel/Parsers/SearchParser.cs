@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace Sisa.Panel.Parsers
 {
-    internal class PlayerSearchParser(IBrowsingContext context) : IParser<IReadOnlyList<PlayerSearchEntry>>
+    internal class SearchParser(IBrowsingContext context) : IParser<IReadOnlyList<PlayerSearchEntry>>
     {
         public async Task<IReadOnlyList<PlayerSearchEntry>> ParseAsync(string html)
         {
@@ -26,9 +26,9 @@ namespace Sisa.Panel.Parsers
                     Country = cells[1].ExtractImgAltAttribute()
                 };
 
-                var name = cells[1].ExtractLinkText();
-                name = ParserRegex.WhitespaceCleanupPattern().Replace(name, " ").Trim();
-                entry.Name = name;
+                var link = cells[1].QuerySelector("a");
+                entry.Uid = link.ExtractUid();
+                entry.Name = link.TextContent.Trim();
 
                 var rankSpan = cells[2].QuerySelector("span[title='Rank']");
                 entry.Rank = rankSpan?.TextContent ?? "N/A";

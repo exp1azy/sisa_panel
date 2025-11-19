@@ -26,7 +26,7 @@ namespace Sisa.Panel.Parsers
                 var player = new PlayerStatEntry()
                 {
                     RatingPosition = ParseElementTextToInt(cells[0]),
-                    Uid = ParseUid(cells[1]),
+                    Uid = cells[1].QuerySelector("a[href*='uid=']")!.ExtractUid(),
                     Country = cells[1].ExtractImgAltAttribute(),
                     Name = ParseName(cells[1]),
                     Level = ParseLevel(cells[2]),
@@ -52,21 +52,6 @@ namespace Sisa.Panel.Parsers
             _ = int.TryParse(positionStr, out int position);
 
             return position;
-        }
-
-        private static int ParseUid(IElement cell)
-        {
-            var link = cell.QuerySelector("a[href*='uid=']");
-            if (link != null)
-            {
-                var href = link.GetAttribute("href") ?? "";
-                var uidMatch = ParserRegex.UidPattern().Match(href);
-
-                if (uidMatch.Success && int.TryParse(uidMatch.Groups[1].Value, out int uid))
-                    return uid;
-            }
-
-            return 0;
         }
 
         private static string ParseName(IElement cell)
@@ -171,7 +156,7 @@ namespace Sisa.Panel.Parsers
         private static string ParseKnife(IElement cell)
         {
             var knifeImg = cell.QuerySelector("img");
-            return knifeImg.GetAttribute("title");
+            return knifeImg.GetAttribute("title")!;
         }
     }
 }

@@ -33,7 +33,7 @@ namespace Sisa.Panel
         private readonly ZombieTopPlayersParser _zombieBestPlayersParser;
         private readonly MapStatsParser _mapStatsParser;
         private readonly PlayerInfoParser _playerInfoParser;
-        private readonly PlayerSearchParser _playerSearchParser;
+        private readonly SearchParser _playerSearchParser;
         private readonly ContestParser _contestParticipantsParser;
         private readonly ContestHistoryParser _contestHistoryParser;
 
@@ -63,7 +63,7 @@ namespace Sisa.Panel
             _zombieBestPlayersParser = new ZombieTopPlayersParser(_context);
             _mapStatsParser = new MapStatsParser(_context);
             _playerInfoParser = new PlayerInfoParser(_context);
-            _playerSearchParser = new PlayerSearchParser(_context);
+            _playerSearchParser = new SearchParser(_context);
             _contestParticipantsParser = new ContestParser(_context);
             _contestHistoryParser = new ContestHistoryParser(_context);
         }
