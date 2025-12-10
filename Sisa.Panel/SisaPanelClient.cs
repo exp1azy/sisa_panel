@@ -112,7 +112,7 @@ namespace Sisa.Panel
         /// <param name="view">Отображаемое количество записей.</param>
         /// <param name="cancellationToken">Токен отмены.</param>
         /// <returns>Список банов с общей статистикой.</returns>
-        public async Task<ChatBanList> GetChatBansAsync(int page = 1, int view = 20, CancellationToken cancellationToken = default)
+        public async Task<ChatBanList> GetChatbansAsync(int page = 1, int view = 20, CancellationToken cancellationToken = default)
         {
             var html = await _httpClient.GetStringAsync($"/chatban_list.php?view={view}&page={page}", cancellationToken);
             return await _chatBanListParser.ParseAsync(html);
@@ -126,7 +126,7 @@ namespace Sisa.Panel
         /// <param name="date">Дата.</param>
         /// <param name="cancellationToken">Токен отмены.</param>
         /// <returns>Список сообщений чата, доступный только для чтения.</returns>
-        public async Task<IReadOnlyList<ChatLogEntry>> GetChatLogAsync(int page = 1, int view = 200,  DateOnly date = default, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ChatLogEntry>> GetChatlogAsync(int page = 1, int view = 200,  DateOnly date = default, CancellationToken cancellationToken = default)
         {
             if (date == default)
                 date = DateOnly.FromDateTime(DateTime.Now);
@@ -153,7 +153,7 @@ namespace Sisa.Panel
         /// </summary>
         /// <param name="cancellationToken">Токен отмены.</param>
         /// <returns>Подробная информация о статусе сервера.</returns>
-        public async Task<ServerLiveStatus> GetLiveStatusAsync(CancellationToken cancellationToken = default)
+        public async Task<ServerLiveStatus> GetLiveAsync(CancellationToken cancellationToken = default)
         {
             var html = await _httpClient.GetStringAsync("/live.php", cancellationToken);
             return await _liveStatusParser.ParseAsync(html);
@@ -189,7 +189,7 @@ namespace Sisa.Panel
         /// <param name="view">Отображаемое количество записей.</param>
         /// <param name="cancellationToken">Токен отмены.</param>
         /// <returns>Список игроков, доступный только для чтения.</returns>
-        public async Task<IReadOnlyList<PlayerStatEntry>> GetPlayerStatsAsync(int page = 1, int view = 50, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<PlayerStatEntry>> GetStatsAsync(int page = 1, int view = 50, CancellationToken cancellationToken = default)
         {
             var html = await _httpClient.GetStringAsync($"/stat.php?sid=0&view={view}&page={page}", cancellationToken);
             return await _playerStatsParser.ParseAsync(html);

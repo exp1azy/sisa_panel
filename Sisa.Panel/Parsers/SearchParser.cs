@@ -12,18 +12,20 @@ namespace Sisa.Panel.Parsers
         public async Task<IReadOnlyList<PlayerSearchEntry>> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
-            var entries = new List<PlayerSearchEntry>();
-
             var table = document.QuerySelector("table.table.table-bordered.table-condensed.table-hover.table-responsive.sortable");
-            if (table == null)
-                return entries.AsReadOnly();
 
-            foreach (var row in table.GetTableRows())
+            if (table == null)
+                return [];
+
+            var rows = table.GetTableRows();
+            var entries = new List<PlayerSearchEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
 
                 if (cells.Count <= 1)
-                    return entries.AsReadOnly();
+                    return entries;
 
                 var entry = new PlayerSearchEntry
                 {
@@ -60,7 +62,7 @@ namespace Sisa.Panel.Parsers
                     entries.Add(entry);
             }
 
-            return entries.AsReadOnly();
+            return entries;
         }
 
         private static string GetSpanTitleValue(IElement cell, string title)

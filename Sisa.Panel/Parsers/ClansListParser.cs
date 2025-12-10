@@ -10,13 +10,15 @@ namespace Sisa.Panel.Parsers
         public async Task<IReadOnlyList<ClanEntry>> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
-            var clans = new List<ClanEntry>();
-
             var table = document.QuerySelector("table.table-bordered");
-            if (table == null)
-                return clans;
 
-            foreach (var row in table.GetTableRows())
+            if (table == null)
+                return [];
+
+            var rows = table.GetTableRows();
+            var clans = new List<ClanEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
                 if (cells.Length < 4)
@@ -41,7 +43,7 @@ namespace Sisa.Panel.Parsers
                     clan.ClanName = clanLink.TextContent;
 
                     var href = clanLink.GetAttribute("href");
-                    var idMatch = ParserRegex.UrlIdExtractorPattern().Match(href);
+                    var idMatch = ParserRegex.UrlIdExtractorPattern.Match(href);
 
                     if (idMatch.Success && idMatch.Groups.Count > 1)
                     {
@@ -56,7 +58,7 @@ namespace Sisa.Panel.Parsers
                 }
 
                 if (!string.IsNullOrEmpty(clan.ClanName))
-                    clan.ClanName = ParserRegex.WhitespaceCleanupPattern().Replace(clan.ClanName, " ").Trim();
+                    clan.ClanName = ParserRegex.WhitespaceCleanupPattern.Replace(clan.ClanName, " ").Trim();
 
                 var actions = new List<string>();
 

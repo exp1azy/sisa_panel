@@ -40,7 +40,7 @@ namespace Sisa.Panel.Parsers
 
                 if (!string.IsNullOrEmpty(nickText))
                 {
-                    var nickAndTag = ParserRegex.TrimUntilNbspPattern().Replace(nickText, "").Split('|');
+                    var nickAndTag = ParserRegex.TrimUntilNbspPattern.Replace(nickText, "").Split('|');
                     if (nickAndTag.Length == 2)
                     {
                         generalInfo.Tag = nickAndTag[0].Trim();
@@ -58,53 +58,53 @@ namespace Sisa.Panel.Parsers
             {
                 generalInfo.SteamProfileUrl = steamLink.GetAttribute("href");
                 generalInfo.SteamProfileName = steamLink.TextContent.Trim();
-                var steamIdMatch = ParserRegex.SteamIdPattern().Match(generalInfo.SteamProfileUrl);
+                var steamIdMatch = ParserRegex.SteamIdPattern.Match(generalInfo.SteamProfileUrl);
 
                 if (steamIdMatch.Success)
                     generalInfo.SteamId = steamIdMatch.Groups[1].Value;
             }
 
             var table = document.QuerySelector(".table-responsive");
+
             if (table == null)
                 return generalInfo;
 
             foreach (var row in table.GetTableRows())
             {
                 var cells = row.GetTableCells();
-                if (cells.Length >= 2)
+
+                if (cells.Length < 2)
+                    continue;
+
+                var label = cells[0].TextContent;
+                var value = cells[1].TextContent;
+
+                if (label.EqualsOrdinal("STEAM_ID"))
                 {
-                    var label = cells[0].TextContent;
-                    var value = cells[1].TextContent;
-
-                    switch (label)
-                    {
-                        case "STEAM_ID":
-                            if (string.IsNullOrEmpty(generalInfo.SteamId))
-                                generalInfo.SteamId = value;
-                            break;
-
-                        case "Заходил":
-                                generalInfo.LastVisitedAt = value.ParseToDateTime();
-                            break;
-
-                        case "Уровень":
-                            var levelElement = row.QuerySelector(".lvlx");
-                            if (levelElement != null && int.TryParse(levelElement.TextContent, out int level))
-                                generalInfo.Level = level;
-                            break;
-
-                        case "Состоит в клане":
-                            var clanLink = row.QuerySelector("a");
-                            if (clanLink != null)
-                                generalInfo.ClanMember = clanLink.TextContent.Trim();
-                            else
-                                generalInfo.ClanMember = value.Trim();
-                            break;
-
-                        case "Онлайн":
-                            generalInfo.Online = value;
-                            break;
-                    }
+                    if (string.IsNullOrEmpty(generalInfo.SteamId))
+                        generalInfo.SteamId = value;
+                }
+                else if (label.EqualsOrdinal("Заходил"))
+                {
+                    generalInfo.LastVisitedAt = value.ParseToDateTime();
+                }
+                else if (label.EqualsOrdinal("Уровень"))
+                {
+                    var levelElement = row.QuerySelector(".lvlx");
+                    if (levelElement != null && int.TryParse(levelElement.TextContent, out int level))
+                        generalInfo.Level = level;
+                }
+                else if (label.EqualsOrdinal("Состоит в клане"))
+                {
+                    var clanLink = row.QuerySelector("a");
+                    if (clanLink != null)
+                        generalInfo.ClanMember = clanLink.TextContent.Trim();
+                    else
+                        generalInfo.ClanMember = value.Trim();
+                }
+                else if (label.EqualsOrdinal("Онлайн"))
+                {
+                    generalInfo.Online = value;
                 }
             }
 
@@ -116,7 +116,7 @@ namespace Sisa.Panel.Parsers
             var settings = new PlayerSettings();
 
             var settingsSection = document.QuerySelector(".span4.smallstat.box .title");
-            if (settingsSection == null || settingsSection.TextContent != "Настройки")
+            if (settingsSection == null || !settingsSection.TextContent.EqualsOrdinal("Настройки"))
                 return settings;
 
             var settingsTable = settingsSection.ParentElement?.QuerySelector(".table-responsive table");
@@ -126,33 +126,25 @@ namespace Sisa.Panel.Parsers
             foreach (var row in settingsTable.GetTableRows())
             {
                 var cells = row.GetTableCells();
-                if (cells.Length >= 2)
-                {
-                    var settingName = cells[0].TextContent;
-                    var settingValue = cells[1].TextContent.Trim();
 
-                    switch (settingName)
-                    {
-                        case "Запись демо":
-                            settings.RecordingDemo = settingValue == "Вкл.";
-                            break;
-                        case "Герой":
-                            settings.Hero = settingValue == "Вкл.";
-                            break;
-                        case "Героиня":
-                            settings.Heroine = settingValue == "Вкл.";
-                            break;
-                        case "Класс по умолчанию":
-                            settings.DefaultClass = settingValue;
-                            break;
-                        case "Язык":
-                            settings.Language = settingValue;
-                            break;
-                        case "Туторы":
-                            settings.Tutorials = settingValue == "Вкл.";
-                            break;
-                    }
-                }
+                if (cells.Length < 2)
+                    continue;
+
+                var settingName = cells[0].TextContent;
+                var settingValue = cells[1].TextContent.Trim();
+
+                if (settingName.EqualsOrdinal("Запись демо"))
+                    settings.RecordingDemo = settingValue.EqualsOrdinal("Вкл.");
+                else if (settingName.EqualsOrdinal("Герой"))
+                    settings.Hero = settingValue.EqualsOrdinal("Вкл.");
+                else if (settingName.EqualsOrdinal("Героиня"))
+                    settings.Heroine = settingValue.EqualsOrdinal("Вкл.");
+                else if (settingName.EqualsOrdinal("Класс по умолчанию"))
+                    settings.DefaultClass = settingValue;
+                else if (settingName.EqualsOrdinal("Язык"))
+                    settings.Language = settingValue;
+                else if (settingName.EqualsOrdinal("Туторы"))
+                    settings.Tutorials = settingValue.EqualsOrdinal("Вкл.");
             }
 
             return settings;
@@ -163,7 +155,7 @@ namespace Sisa.Panel.Parsers
             var stats = new PlayerBasicStats();
 
             var statsSection = document.QuerySelector(".smallstat.box.mobileHalf.span6 .title");
-            if (statsSection == null || statsSection.TextContent != "Основная статистика")
+            if (statsSection == null || !statsSection.TextContent.EqualsOrdinal("Основная статистика"))
                 return stats;
 
             var statsTable = statsSection.ParentElement?.QuerySelector(".table-responsive table");
@@ -173,92 +165,91 @@ namespace Sisa.Panel.Parsers
             foreach (var row in statsTable.GetTableRows())
             {
                 var cells = row.GetTableCells();
-                if (cells.Length >= 2)
+
+                if (cells.Length < 2)
+                    continue;
+
+                var label = cells[0].TextContent;
+                var valueCell = cells.Length > 2 ? cells[2] : cells[1];
+
+                if (label.EqualsOrdinal("Нож"))
                 {
-                    var label = cells[0].TextContent;
-                    var valueCell = cells.Length > 2 ? cells[2] : cells[1];
-
-                    switch (label)
+                    var knifeImg = row.QuerySelector("img");
+                    if (knifeImg != null)
+                        stats.Knife = knifeImg.GetAttribute("title");
+                }
+                else if (label.EqualsOrdinal("EXP"))
+                {
+                    if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int exp))
+                        stats.Exp = exp;
+                }
+                else if (label.EqualsOrdinal("Следующий уровень"))
+                {
+                    var progressText = valueCell.TextContent;
+                    if (!string.IsNullOrEmpty(progressText))
                     {
-                        case "Нож":
-                            var knifeImg = row.QuerySelector("img");
-                            if (knifeImg != null)
-                                stats.Knife = knifeImg.GetAttribute("title");
-                            break;
+                        var match = ParserRegex.FormattedNumberExtractorPattern.Match(progressText);
 
-                        case "EXP":
-                            if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int exp))
-                                stats.Exp = exp;
-                            break;
+                        if (match.Success && int.TryParse(match.Groups[1].Value.Replace(" ", ""), out int nextLevel))
+                            stats.NextLevel = nextLevel;
 
-                        case "Следующий уровень":
-                            var progressText = valueCell.TextContent;
-                            if (!string.IsNullOrEmpty(progressText))
-                            {
-                                var match = ParserRegex.FormattedNumberExtractorPattern().Match(progressText);
+                        var remainingMatch = ParserRegex.RemainingTimePattern.Match(progressText);
 
-                                if (match.Success && int.TryParse(match.Groups[1].Value.Replace(" ", ""), out int nextLevel))
-                                    stats.NextLevel = nextLevel;
-
-                                var remainingMatch = ParserRegex.RemainingTimePattern().Match(progressText);
-
-                                if (remainingMatch.Success && int.TryParse(remainingMatch.Groups[1].Value.Replace(" ", ""), out int expToNext))
-                                    stats.ExpToNextLevel = expToNext;
-                            }
-                            break;
-
-                        case "Деньги":
-                            var moneyText = valueCell.TextContent;
-                            if (int.TryParse(moneyText.Replace("$", "").Replace(" ", ""), out int money))
-                                stats.Money = money;
-                            break;
-
-                        case "Аммо":
-                            if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int ammo))
-                                stats.Ammo = ammo;
-                            break;
-
-                        case "Денежные ключи":
-                            if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int moneyKeys))
-                                stats.MoneyKeys = moneyKeys;
-                            break;
-
-                        case "Аммо ключи":
-                            if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int ammoKeys))
-                                stats.AmmoKeys = ammoKeys;
-                            break;
-
-                        case "Нанес урона":
-                            if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int damage))
-                                stats.Damage = damage;
-                            break;
-
-                        case "Был лучшим":
-                            if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int mvps))
-                                stats.MVPs = mvps;
-                            break;
-
-                        case "Ассистов":
-                            if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int assists))
-                                stats.Assists = assists;
-                            break;
-
-                        case "Самоубийств":
-                            if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int suicides))
-                                stats.Suicides = suicides;
-                            break;
-
-                        case "Смертей":
-                            if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int deaths))
-                                stats.Deaths = deaths;
-                            break;
-
-                        case "У/С":
-                            var kdText = valueCell.TextContent;
-                            if (decimal.TryParse(kdText, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal kdRatio))
-                                stats.KillDeathRatio = kdRatio;
-                            break;
+                        if (remainingMatch.Success && int.TryParse(remainingMatch.Groups[1].Value.Replace(" ", ""), out int expToNext))
+                            stats.ExpToNextLevel = expToNext;
                     }
+                }
+                else if (label.EqualsOrdinal("Деньги"))
+                {
+                    var moneyText = valueCell.TextContent;
+                    if (int.TryParse(moneyText.Replace("$", "").Replace(" ", ""), out int money))
+                        stats.Money = money;
+                }
+                else if (label.EqualsOrdinal("Аммо"))
+                {
+                    if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int ammo))
+                        stats.Ammo = ammo;
+                }
+                else if (label.EqualsOrdinal("Денежные ключи"))
+                {
+                    if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int moneyKeys))
+                        stats.MoneyKeys = moneyKeys;
+                }
+                else if (label.EqualsOrdinal("Аммо ключи"))
+                {
+                    if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int ammoKeys))
+                        stats.AmmoKeys = ammoKeys;
+                }
+                else if (label.EqualsOrdinal("Нанес урона"))
+                {
+                    if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int damage))
+                        stats.Damage = damage;
+                }
+                else if (label.EqualsOrdinal("Был лучшим"))
+                {
+                    if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int mvps))
+                        stats.MVPs = mvps;
+                }
+                else if (label.EqualsOrdinal("Ассистов"))
+                {
+                    if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int assists))
+                        stats.Assists = assists;
+                }
+                else if (label.EqualsOrdinal("Самоубийств"))
+                {
+                    if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int suicides))
+                        stats.Suicides = suicides;
+                }
+                else if (label.EqualsOrdinal("Смертей"))
+                {
+                    if (int.TryParse(valueCell.TextContent.Replace(" ", ""), out int deaths))
+                        stats.Deaths = deaths;
+                }
+                else if (label.EqualsOrdinal("У/С"))
+                {
+                    var kdText = valueCell.TextContent;
+                    if (decimal.TryParse(kdText, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal kdRatio))
+                        stats.KillDeathRatio = kdRatio;
                 }
             }
 
@@ -272,7 +263,7 @@ namespace Sisa.Panel.Parsers
             foreach (var block in document.QuerySelectorAll(".smallstat.box.mobileHalf.span6"))
             {
                 var titleElement = block.QuerySelector(".title");
-                if (titleElement?.TextContent != "Достижения")
+                if (titleElement?.TextContent.EqualsOrdinal("Достижения") == false)
                     continue;
 
                 var table = block.QuerySelector(".table-responsive table");
@@ -288,79 +279,78 @@ namespace Sisa.Panel.Parsers
                     var valueText = cells[1].TextContent;
                     var cleanValue = valueText.Replace(" ", "");
 
-                    switch (label)
+                    if (label.EqualsOrdinal("Класс зомби"))
                     {
-                        case "Класс зомби":
-                            progress.Class = valueText;
-                            break;
-
-                        case "Нанес урона (за зм)":
-                            if (int.TryParse(cleanValue, out int damageByZombie))
-                                progress.DamageByZombie = damageByZombie;
-                            break;
-
-                        case "Заразил":
-                            if (int.TryParse(cleanValue, out int infects))
-                                progress.Infects = infects;
-                            break;
-
-                        case "Был заражен":
-                            if (int.TryParse(cleanValue, out int wasInfected))
-                                progress.WasInfected = wasInfected;
-                            break;
-
-                        case "Был первым зомби":
-                            if (int.TryParse(cleanValue, out int wasFirstZm))
-                                progress.WasFirstZm = wasFirstZm;
-                            break;
-
-                        case "Был немезисом":
-                            if (int.TryParse(cleanValue, out int wasNemesis))
-                                progress.WasNemesis = wasNemesis;
-                            break;
-
-                        case "Был выжившим":
-                            if (int.TryParse(cleanValue, out int wasSurvivor))
-                                progress.WasSurvivor = wasSurvivor;
-                            break;
-
-                        case "Был героем":
-                            if (int.TryParse(cleanValue, out int wasHero))
-                                progress.WasHero = wasHero;
-                            break;
-
-                        case "Был героиней":
-                            if (int.TryParse(cleanValue, out int wasHeroine))
-                                progress.WasHeroine = wasHeroine;
-                            break;
-
-                        case "Убил зомби":
-                            if (int.TryParse(cleanValue, out int zombieKills))
-                                progress.ZombieKills = zombieKills;
-                            break;
-
-                        case "Убил людей":
-                            if (int.TryParse(cleanValue, out int humanKills))
-                                progress.HumanKills = humanKills;
-                            break;
-
-                        case "Убил немезисов":
-                            if (int.TryParse(cleanValue, out int nemesisKills))
-                                progress.NemesisKills = nemesisKills;
-                            break;
-
-                        case "Убил выживших":
-                            if (int.TryParse(cleanValue, out int survivorKills))
-                                progress.SurvivorKills = survivorKills;
-                            break;
-
-                        case "Убил боссов":
-                            if (int.TryParse(cleanValue, out int bossKills))
-                                progress.BossKills = bossKills;
-                            break;
+                        progress.Class = valueText;
                     }
+                    else if (label.EqualsOrdinal("Нанес урона (за зм)"))
+                    {
+                        if (int.TryParse(cleanValue, out int damageByZombie))
+                            progress.DamageByZombie = damageByZombie;
+                    }
+                    else if (label.EqualsOrdinal("Заразил"))
+                    {
+                        if (int.TryParse(cleanValue, out int infects))
+                            progress.Infects = infects;
+                    }
+                    else if (label.EqualsOrdinal("Был заражен"))
+                    {
+                        if (int.TryParse(cleanValue, out int wasInfected))
+                            progress.WasInfected = wasInfected;
+                    }
+                    else if (label.EqualsOrdinal("Был первым зомби"))
+                    {
+                        if (int.TryParse(cleanValue, out int wasFirstZm))
+                            progress.WasFirstZm = wasFirstZm;
+                    }
+                    else if (label.EqualsOrdinal("Был немезисом"))
+                    {
+                        if (int.TryParse(cleanValue, out int wasNemesis))
+                            progress.WasNemesis = wasNemesis;
+                    }
+                    else if (label.EqualsOrdinal("Был выжившим"))
+                    {
+                        if (int.TryParse(cleanValue, out int wasSurvivor))
+                            progress.WasSurvivor = wasSurvivor;
+                    }
+                    else if (label.EqualsOrdinal("Был героем"))
+                    {
+                        if (int.TryParse(cleanValue, out int wasHero))
+                            progress.WasHero = wasHero;
+                    }
+                    else if (label.EqualsOrdinal("Был героиней"))
+                    {
+                        if (int.TryParse(cleanValue, out int wasHeroine))
+                            progress.WasHeroine = wasHeroine;
+                    }
+                    else if (label.EqualsOrdinal("Убил зомби"))
+                    {
+                        if (int.TryParse(cleanValue, out int zombieKills))
+                            progress.ZombieKills = zombieKills;
+                    }
+                    else if (label.EqualsOrdinal("Убил людей"))
+                    {
+                        if (int.TryParse(cleanValue, out int humanKills))
+                            progress.HumanKills = humanKills;
+                    }
+                    else if (label.EqualsOrdinal("Убил немезисов"))
+                    {
+                        if (int.TryParse(cleanValue, out int nemesisKills))
+                            progress.NemesisKills = nemesisKills;
+                    }
+                    else if (label.EqualsOrdinal("Убил выживших"))
+                    {
+                        if (int.TryParse(cleanValue, out int survivorKills))
+                            progress.SurvivorKills = survivorKills;
+                    }
+                    else if (label.EqualsOrdinal("Убил боссов"))
+                    {
+                        if (int.TryParse(cleanValue, out int bossKills))
+                            progress.BossKills = bossKills;
+                    }
+
+                    break;
                 }
-                break;
             }
 
             return progress;
@@ -368,13 +358,14 @@ namespace Sisa.Panel.Parsers
 
         private static List<PlayerTempWeapon> ParseTempWeapons(IDocument document)
         {
-            var tempWeapons = new List<PlayerTempWeapon>();
-
             var weaponsContainer = document.QuerySelector("#wpnhour");
             if (weaponsContainer == null)
-                return tempWeapons;
-            
-            foreach (var card in weaponsContainer.QuerySelectorAll(".span4[style*='border: 1px solid #ddd']"))
+                return [];
+
+            var cards = weaponsContainer.QuerySelectorAll(".span4[style*='border: 1px solid #ddd']");
+            var tempWeapons = new List<PlayerTempWeapon>(cards.Length);
+
+            foreach (var card in cards)
             {
                 var weapon = new PlayerTempWeapon();
 
@@ -388,7 +379,7 @@ namespace Sisa.Panel.Parsers
                     var fullText = textSpan.TextContent;
                     fullText = fullText.Replace("&nbsp;", " ").Replace("\u00A0", " ").Trim();
 
-                    var match = ParserRegex.TempWeaponPattern().Match(fullText);
+                    var match = ParserRegex.TempWeaponPattern.Match(fullText);
                     if (match.Success)
                     {
                         weapon.Name = match.Groups[1].Value.Trim();
@@ -409,13 +400,14 @@ namespace Sisa.Panel.Parsers
 
         private static List<PlayerWeaponStatEntry> ParseWeaponStats(IDocument document)
         {
-            var weaponStats = new List<PlayerWeaponStatEntry>();
-
             var table = document.QuerySelector("#weapons table");
             if (table == null)
-                return weaponStats;
+                return [];
 
-            foreach (var row in table.GetTableRows())
+            var rows = table.GetTableRows();
+            var weaponStats = new List<PlayerWeaponStatEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
                 if (cells.Length >= 11)
@@ -444,13 +436,14 @@ namespace Sisa.Panel.Parsers
 
         private static List<PlayerModWeaponStatEntry> ParseModWeaponStats(IDocument document)
         {
-            var modWeaponStats = new List<PlayerModWeaponStatEntry>();
-
             var table = document.QuerySelector("#modweaps table");
             if (table == null)
-                return modWeaponStats;
+                return [];
 
-            foreach (var row in table.GetTableRows())
+            var rows = table.GetTableRows();
+            var modWeaponStats = new List<PlayerModWeaponStatEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
                 if (cells.Length >= 9)
@@ -477,13 +470,14 @@ namespace Sisa.Panel.Parsers
 
         private static List<PlayerZombieStatEntry> ParseZombieClassesStats(IDocument document)
         {
-            var zombieStats = new List<PlayerZombieStatEntry>();
-
             var table = document.QuerySelector("#zmstat");
             if (table == null)
-                return zombieStats;
+                return [];
 
-            foreach (var row in table.GetTableRows())
+            var rows = table.GetTableRows();
+            var zombieStats = new List<PlayerZombieStatEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
                 if (cells.Length >= 10)
@@ -511,17 +505,18 @@ namespace Sisa.Panel.Parsers
 
         private static List<PlayerZombieGrenadesInfo> ParseZombieGrenades(IDocument document)
         {
-            var grenades = new List<PlayerZombieGrenadesInfo>();
-
             var grenadeLink = document.QuerySelector("a[href*='#zmweapons']");
-            if (grenadeLink?.TextContent.Contains("Гранаты зомби") != true)
-                return grenades;
+            if (grenadeLink?.TextContent.ContainsOrdinal("Гранаты зомби") != true)
+                return [];
 
             var grenadesContainer = grenadeLink.Closest(".smallstat.box");
             if (grenadesContainer == null)
-                return grenades;
+                return [];
 
-            foreach (var block in grenadesContainer.QuerySelectorAll(".span6"))
+            var blocks = grenadesContainer.QuerySelectorAll(".span6");
+            var grenades = new List<PlayerZombieGrenadesInfo>(blocks.Length);
+
+            foreach (var block in blocks)
             {
                 var grenade = new PlayerZombieGrenadesInfo();
 
@@ -539,21 +534,14 @@ namespace Sisa.Panel.Parsers
 
                     if (int.TryParse(valueText, out int value))
                     {
-                        switch (label)
-                        {
-                            case "УРОН":
-                                grenade.Damage = value;
-                                break;
-                            case "ЗАРАЖЕНИЙ":
-                                grenade.Infects = value;
-                                break;
-                            case "БРОСКОВ":
-                                grenade.Throws = value;
-                                break;
-                            case "УБИЙСТВ":
-                                grenade.Kills = value;
-                                break;
-                        }
+                        if (label.EqualsOrdinal("УРОН"))
+                            grenade.Damage = value;
+                        else if (label.EqualsOrdinal("ЗАРАЖЕНИЙ"))
+                            grenade.Infects = value;
+                        else if (label.EqualsOrdinal("БРОСКОВ"))
+                            grenade.Throws = value;
+                        else if (label.EqualsOrdinal("УБИЙСТВ"))
+                            grenade.Kills = value;
                     }
                 }
 

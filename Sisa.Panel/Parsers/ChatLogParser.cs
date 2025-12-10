@@ -10,13 +10,15 @@ namespace Sisa.Panel.Parsers
         public async Task<IReadOnlyList<ChatLogEntry>> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
-            var messages = new List<ChatLogEntry>();
-
             var table = document.QuerySelector("table.table-striped");
-            if (table == null)
-                return messages;
 
-            foreach (var row in table.GetTableRows())
+            if (table == null)
+                return [];
+
+            var rows = table.GetTableRows();
+            var messages = new List<ChatLogEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
                 var columns = row.GetTableCells();
 

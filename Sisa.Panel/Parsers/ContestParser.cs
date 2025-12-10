@@ -22,46 +22,49 @@ namespace Sisa.Panel.Parsers
 
         private static List<LastWinner> ParseLastWinners(IDocument document)
         {
-            var winners = new List<LastWinner>();
-
             var prevContestSection = document
                 .QuerySelectorAll("center")
-                .FirstOrDefault(x => x.TextContent.Contains("Предыдущий конкурс"))?.ParentElement;
+                .FirstOrDefault(x => x.TextContent.ContainsOrdinal("Предыдущий конкурс"))?.ParentElement;
 
-            if (prevContestSection != null)
+            if (prevContestSection == null)
+                return [];
+
+            var blocks = prevContestSection.QuerySelectorAll(".span4");
+            var winners = new List<LastWinner>(blocks.Length);
+
+            foreach (var block in blocks)
             {
-                foreach (var block in prevContestSection.QuerySelectorAll(".span4"))
+                var span = block.QuerySelector("span.charts-label1");
+                var nameLink = span.GetSteamProfileElement();
+
+                var name = nameLink?.TextContent;
+                var steamProfile = nameLink?.GetAttribute("href") ?? string.Empty;
+                var para = block.QuerySelector("p.charts-label1")?.TextContent;
+
+                var winner = new LastWinner
                 {
-                    var span = block.QuerySelector("span.charts-label1");
-                    var nameLink = span.GetSteamProfileElement();
+                    Name = name,
+                    SteamProfile = steamProfile,
+                    Gift = para
+                };
 
-                    var name = nameLink?.TextContent;
-                    var steamProfile = nameLink?.GetAttribute("href") ?? string.Empty;
-                    var para = block.QuerySelector("p.charts-label1")?.TextContent;
-
-                    var winner = new LastWinner
-                    {
-                        Name = name,
-                        SteamProfile = steamProfile,
-                        Gift = para
-                    };
-
-                    winners.Add(winner);
-                }
+                winners.Add(winner);
             }
+            
 
             return winners;
         }
 
         private static List<ContestParticipant> ParseCurrentParticipants(IDocument document)
         {
-            var participants = new List<ContestParticipant>();
-
             var table = document.QuerySelector("table.table-bordered");
             if (table == null)
-                return participants;
+                return [];
 
-            foreach (var row in table.GetTableRows())
+            var rows = table.GetTableRows();
+            var participants = new List<ContestParticipant>(rows.Length);
+
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
                 if (cells.Length < 3)

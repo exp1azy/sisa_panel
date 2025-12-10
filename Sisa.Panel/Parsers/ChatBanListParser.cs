@@ -20,9 +20,9 @@ namespace Sisa.Panel.Parsers
             foreach (var element in document.QuerySelectorAll("td[colspan='8']"))
             {
                 var text = element.TextContent;
-                if (text.Contains("Всего банов:"))
+                if (text.ContainsOrdinal("Всего банов:"))
                 {
-                    var match = ParserRegex.TotalBansPattern().Match(text);
+                    var match = ParserRegex.TotalBansPattern.Match(text);
 
                     if (match.Success)
                     {
@@ -40,14 +40,15 @@ namespace Sisa.Panel.Parsers
 
         private static List<ChatBanEntry> ParseChatBansTable(IDocument document)
         {
-            var bans = new List<ChatBanEntry>();
+            var rows = document.QuerySelectorAll("tr[data-toggle]");
+            var bans = new List<ChatBanEntry>(rows.Length);
 
-            foreach (var row in document.QuerySelectorAll("tr[data-toggle]"))
+            foreach (var row in rows)
             {
                 var banEntry = new ChatBanEntry();
                 var dataTarget = row.GetAttribute("data-target");
 
-                if (!string.IsNullOrEmpty(dataTarget) && dataTarget.StartsWith('#'))
+                if (!string.IsNullOrEmpty(dataTarget) && dataTarget.StartsWithOrdinal("#"))
                     banEntry.Id = dataTarget[1..];
 
                 var cells = row.GetTableCells();
@@ -81,38 +82,43 @@ namespace Sisa.Panel.Parsers
             foreach (var detailRow in detailsTable.GetTableRows())
             {
                 var cells = detailRow.GetTableCells();
-                if (cells.Length >= 2)
-                {
-                    var key = cells[0].TextContent;
-                    var value = cells[1];
 
-                    switch (key)
-                    {
-                        case "Игрок":
-                            if (string.IsNullOrEmpty(entry.PlayerName))
-                                entry.PlayerName = value.TextContent;
-                            break;
-                        case "ID Номер":
-                            entry.SteamId = value.TextContent;
-                            break;
-                        case "Steam профиль":
-                            var link = value.GetSteamProfileElement();
-                            entry.SteamProfile = link?.GetAttribute("href") ?? string.Empty;
-                            break;
-                        case "Добавлен":
-                            entry.Date = value.TextContent;
-                            break;
-                        case "Время бана":
-                            entry.BanTime = value.TextContent;
-                            break;
-                        case "Истекает":
-                            entry.Expires = value.TextContent;
-                            break;
-                        case "Предыдущих нарушений":
-                            if (int.TryParse(value.TextContent, out int violations))
-                                entry.PreviousViolations = violations;
-                            break;
-                    }
+                if (cells.Length < 2)
+                    continue;
+
+                var key = cells[0].TextContent;
+                var value = cells[1];
+
+                if (key.EqualsOrdinal("Игрок"))
+                {
+                    if (string.IsNullOrEmpty(entry.PlayerName))
+                        entry.PlayerName = value.TextContent;
+                }
+                else if (key.EqualsOrdinal("ID Номер"))
+                {
+                    entry.SteamId = value.TextContent;
+                }
+                else if (key.EqualsOrdinal("Steam профиль"))
+                {
+                    var link = value.GetSteamProfileElement();
+                    entry.SteamProfile = link?.GetAttribute("href") ?? string.Empty;
+                }
+                else if (key.EqualsOrdinal("Добавлен"))
+                {
+                    entry.Date = value.TextContent;
+                }
+                else if (key.EqualsOrdinal("Время бана"))
+                {
+                    entry.BanTime = value.TextContent;
+                }
+                else if (key.EqualsOrdinal("Истекает"))
+                {
+                    entry.Expires = value.TextContent;
+                }
+                else if (key.EqualsOrdinal("Предыдущих нарушений"))
+                {
+                    if (int.TryParse(value.TextContent, out int violations))
+                        entry.PreviousViolations = violations;
                 }
             }
         }

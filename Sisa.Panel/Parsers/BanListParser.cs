@@ -23,14 +23,14 @@ namespace Sisa.Panel.Parsers
             {
                 var summaryText = summaryRow.TextContent;
 
-                var bansMatch = ParserRegex.TotalBansPattern().Match(summaryText);
+                var bansMatch = ParserRegex.TotalBansPattern.Match(summaryText);
                 if (bansMatch.Success)
                 {
                     banList.TotalBans = int.Parse(bansMatch.Groups[1].Value);
                     banList.ActiveBans = int.Parse(bansMatch.Groups[2].Value);
                 }
 
-                var demosMatch = ParserRegex.TotalDemosPattern().Match(summaryText);
+                var demosMatch = ParserRegex.TotalDemosPattern.Match(summaryText);
                 if (demosMatch.Success)
                     banList.TotalDemos = int.Parse(demosMatch.Groups[1].Value);
             }
@@ -40,13 +40,15 @@ namespace Sisa.Panel.Parsers
 
         private static List<BanEntry> ParseBansTable(IDocument document)
         {
-            var bans = new List<BanEntry>();
-
             var table = document.QuerySelector("table.table");
-            if (table == null)
-                return bans;
 
-            foreach (var row in table.GetTableRows())
+            if (table == null)
+                return [];
+
+            var rows = table.GetTableRows();
+            var bans = new List<BanEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
                 if (row.QuerySelector("td[colspan]") != null)
                     continue;
@@ -58,7 +60,7 @@ namespace Sisa.Panel.Parsers
                 var dataTarget = row.GetAttribute("data-target");
 
                 int banId = 0;
-                if (!string.IsNullOrEmpty(dataTarget) && dataTarget.StartsWith("#ban-"))
+                if (!string.IsNullOrEmpty(dataTarget) && dataTarget.StartsWithOrdinal("#ban-"))
                 {
                     var idStr = dataTarget[5..];
                     _ = int.TryParse(idStr, out banId);
@@ -67,9 +69,9 @@ namespace Sisa.Panel.Parsers
                 var content = cols[0].InnerHtml;
                 string banType = "unknown";
 
-                if (content.Contains("internet-explorer"))
+                if (content.ContainsOrdinal("internet-explorer"))
                     banType = "website";
-                else if (content.Contains("czero.gif"))
+                else if (content.ContainsOrdinal("czero.gif"))
                     banType = "czero";
 
                 var ban = new BanEntry
@@ -81,7 +83,7 @@ namespace Sisa.Panel.Parsers
                     AdminName = cols[3].TextContent.Trim(),
                     Reason = cols[4].TextContent,
                     Duration = cols[5].TextContent,
-                    HasDemo = !cols[6].TextContent.Contains("нет демо"),
+                    HasDemo = !cols[6].TextContent.ContainsOrdinal("нет демо"),
                     Client = banType
                 };
 

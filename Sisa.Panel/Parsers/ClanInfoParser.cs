@@ -24,14 +24,16 @@ namespace Sisa.Panel.Parsers
         private static ClanGeneralInfo ParseGeneralInfo(IDocument document)
         {
             var generalInfo = new ClanGeneralInfo();
-            var actions = new List<string>();
 
-            foreach (var span in document.QuerySelectorAll("span"))
+            var spans = document.QuerySelectorAll("span");
+            var actions = new List<string>(spans.Length);
+
+            foreach (var span in spans)
             {
                 if (string.IsNullOrEmpty(span.ClassName))
                     continue;
 
-                var isAction = span.ClassName.StartsWith("label");
+                var isAction = span.ClassName.StartsWithOrdinal("label");
 
                 if (!isAction)
                     continue;
@@ -84,12 +86,13 @@ namespace Sisa.Panel.Parsers
 
         private static List<ClanLastActionEntry> ParseLastActions(IDocument document)
         {
-            var actions = new List<ClanLastActionEntry>();
-
             var actionTable = document.QuerySelector("table.table-condensed");
-            if (actionTable == null) return actions;
+            if (actionTable == null) return [];
 
-            foreach (var row in actionTable.GetTableRows())
+            var rows = actionTable.GetTableRows();
+            var actions = new List<ClanLastActionEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
                 if (cells.Length >= 4)
@@ -138,12 +141,13 @@ namespace Sisa.Panel.Parsers
 
         private static List<ClanPlayerEntry> ParseMembers(IDocument document)
         {
-            var members = new List<ClanPlayerEntry>();
-
             var memberTable = document.QuerySelectorAll("table.table-condensed")[^1];
-            if (memberTable == null) return members;
+            if (memberTable == null) return [];
 
-            foreach (var row in memberTable.GetTableRows())
+            var rows = memberTable.GetTableRows();
+            var members = new List<ClanPlayerEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
                 if (cells.Length >= 5)

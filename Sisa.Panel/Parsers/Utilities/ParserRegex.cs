@@ -4,49 +4,65 @@ namespace Sisa.Panel.Parsers
 {
     internal static partial class ParserRegex
     {
+        public static readonly Regex TotalBansPattern = TotalBansGeneratedPattern();
+        public static readonly Regex TotalDemosPattern = TotalDemosGeneratedPattern();
+        public static readonly Regex WhitespaceCleanupPattern = WhitespaceCleanupGeneratedPattern();
+        public static readonly Regex UrlIdExtractorPattern = UrlIdExtractorGeneratedPattern();
+        public static readonly Regex WidPattern = WidGeneratedPattern();
+        public static readonly Regex TimeLeftPattern = TimeLeftGeneratedPattern();
+        public static readonly Regex PlayerCountPattern = PlayerCountGeneratedPattern();
+        public static readonly Regex FragsPattern = FragsGeneratedPattern();      
+        public static readonly Regex ActivityPattern = ActivityGeneratedPattern();
+        public static readonly Regex SteamIdPattern = SteamIdGeneratedPattern();
+        public static readonly Regex TempWeaponPattern = TempWeaponGeneratedPattern();
+        public static readonly Regex TrimUntilNbspPattern = TrimUntilNbspGeneratedPattern();
+        public static readonly Regex RemainingTimePattern = RemainingTimeGeneratedPattern();
+        public static readonly Regex FormattedNumberExtractorPattern = FormattedNumberExtractorGeneratedPattern();
+        public static readonly Regex UidPattern = UidGeneratedPattern();
+
         [GeneratedRegex(@"Всего банов:\s*(\d+)\s*\((\d+)\s*active\)", RegexOptions.IgnoreCase)]
-        public static partial Regex TotalBansPattern();
+        private static partial Regex TotalBansGeneratedPattern();
 
         [GeneratedRegex(@"Всего демо в базе данных\s*:\s*(\d+)")]
-        public static partial Regex TotalDemosPattern();
+        private static partial Regex TotalDemosGeneratedPattern();
 
         [GeneratedRegex(@"\s+")]
-        public static partial Regex WhitespaceCleanupPattern();
+        private static partial Regex WhitespaceCleanupGeneratedPattern();
 
         [GeneratedRegex(@"[?&]id=(\d+)")]
-        public static partial Regex UrlIdExtractorPattern();
+        private static partial Regex UrlIdExtractorGeneratedPattern();
 
         [GeneratedRegex(@"wid=(\d+)")]
-        public static partial Regex WidPattern();
+        private static partial Regex WidGeneratedPattern();
 
         [GeneratedRegex(@"(\d+)\s*/\s*(\d+)")]
-        public static partial Regex TimeLeftPattern();
+        private static partial Regex TimeLeftGeneratedPattern();
 
         [GeneratedRegex(@"(\d+)\s+игрок(а|ов)?")]
-        public static partial Regex PlayerCountPattern();
+        private static partial Regex PlayerCountGeneratedPattern();
 
         [GeneratedRegex(@"(\d+)\s*:\s*(\d+)")]
-        public static partial Regex FragsPattern();
+        private static partial Regex FragsGeneratedPattern();
 
         [GeneratedRegex(@"{x:\s*'([^']+)',\s*y:\s*(\d+)}")]
-        public static partial Regex ActivityPattern();
+        private static partial Regex ActivityGeneratedPattern();
 
         [GeneratedRegex(@"/(7656119\d+)/")]
-        public static partial Regex SteamIdPattern();
+        private static partial Regex SteamIdGeneratedPattern();
 
         [GeneratedRegex(@"^(.+?)\s*\((.+?)\)$")]
-        public static partial Regex TempWeaponPattern();
+        private static partial Regex TempWeaponGeneratedPattern();
 
         [GeneratedRegex(@"^.*?\s+\&nbsp;")]
-        public static partial Regex TrimUntilNbspPattern();
+        private static partial Regex TrimUntilNbspGeneratedPattern();
 
         [GeneratedRegex(@"(\d+(?:\s?\d+)*)\s+осталось")]
-        public static partial Regex RemainingTimePattern();
+        private static partial Regex RemainingTimeGeneratedPattern();
 
         [GeneratedRegex(@"(\d+(?:\s?\d+)*)")]
-        public static partial Regex FormattedNumberExtractorPattern();
+        private static partial Regex FormattedNumberExtractorGeneratedPattern();
 
         [GeneratedRegex(@"uid=(\d+)")]
-        public static partial Regex UidPattern();
+        private static partial Regex UidGeneratedPattern();
     }
 }

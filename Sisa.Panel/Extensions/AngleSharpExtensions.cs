@@ -44,7 +44,7 @@ namespace Sisa.Panel.Extensions
             public int ExtractUid()
             {
                 var href = element.GetAttribute("href") ?? "";
-                var uidMatch = ParserRegex.UidPattern().Match(href);
+                var uidMatch = ParserRegex.UidPattern.Match(href);
 
                 if (uidMatch.Success && int.TryParse(uidMatch.Groups[1].Value, out int uid))
                     return uid;

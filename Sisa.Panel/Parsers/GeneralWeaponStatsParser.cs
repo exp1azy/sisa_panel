@@ -25,9 +25,10 @@ namespace Sisa.Panel.Parsers
 
         private static List<WeaponEntry> ParseWeaponsTable(IElement table)
         {
-            var weapons = new List<WeaponEntry>();
+            var rows = table.GetTableRows();
+            var weapons = new List<WeaponEntry>(rows.Length);
 
-            foreach (var row in table.GetTableRows())
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
 
@@ -64,7 +65,7 @@ namespace Sisa.Panel.Parsers
             if (link != null)
             {
                 var href = link.GetAttribute("href") ?? "";
-                var widMatch = ParserRegex.WidPattern().Match(href);
+                var widMatch = ParserRegex.WidPattern.Match(href);
 
                 if (widMatch.Success && int.TryParse(widMatch.Groups[1].Value, out int wid))
                     return wid;
@@ -75,9 +76,10 @@ namespace Sisa.Panel.Parsers
 
         private static List<ModWeaponEntry> ParseModWeaponsTable(IElement table)
         {
-            var modWeapons = new List<ModWeaponEntry>();
+            var rows = table.GetTableRows();
+            var modWeapons = new List<ModWeaponEntry>(rows.Length);
 
-            foreach (var row in table.GetTableRows())
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
                 if (cells.Length >= 10)

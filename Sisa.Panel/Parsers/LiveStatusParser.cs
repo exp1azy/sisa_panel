@@ -4,6 +4,7 @@ using Sisa.Panel.Extensions;
 using Sisa.Panel.Models.Live;
 using Sisa.Panel.Parsers.Interfaces;
 using Sisa.Panel.Responses;
+using System.Text.RegularExpressions;
 
 namespace Sisa.Panel.Parsers
 {
@@ -34,36 +35,39 @@ namespace Sisa.Panel.Parsers
             foreach (var row in table.GetTableRows())
             {
                 var cells = row.GetTableCells();
-                if (cells.Length >= 2)
-                {
-                    switch (cells[0].TextContent)
-                    {
-                        case "Карта":
-                            status.CurrentMap = cells[1].TextContent;
-                            break;
-                        case "Текущий мод":
-                            status.CurrentMod = cells[1].TextContent;
-                            break;
-                        case "Игроков":
-                            var playerText = cells[2].TextContent;
-                            var playerMatch = ParserRegex.TimeLeftPattern().Match(playerText);
 
-                            if (playerMatch.Success)
-                            {
-                                status.PlayersOnline = int.Parse(playerMatch.Groups[1].Value);
-                                status.MaxPlayers = int.Parse(playerMatch.Groups[2].Value);
-                            }
-                            break;
-                        case "Осталось времени":
-                            if (cells.Length < 3)
-                                status.TimeLeft = cells[1].TextContent;
-                            else
-                                status.TimeLeft = cells[2].TextContent  ;
-                            break;
-                        case "Босс-раунд":
-                            status.BossRoundAvailable = cells[1].TextContent == "Доступен";
-                            break;
+                if (cells.Length < 2)
+                    continue;
+
+                if (cells[0].TextContent.EqualsOrdinal("Карта"))
+                {
+                    status.CurrentMap = cells[1].TextContent;
+                }
+                else if (cells[0].TextContent.EqualsOrdinal("Текущий мод"))
+                {
+                    status.CurrentMod = cells[1].TextContent;
+                }
+                else if (cells[0].TextContent.EqualsOrdinal("Игроков"))
+                {
+                    var playerText = cells[2].TextContent;
+                    var playerMatch = ParserRegex.TimeLeftPattern.Match(playerText);
+
+                    if (playerMatch.Success)
+                    {
+                        status.PlayersOnline = int.Parse(playerMatch.Groups[1].Value);
+                        status.MaxPlayers = int.Parse(playerMatch.Groups[2].Value);
                     }
+                }
+                else if (cells[0].TextContent.EqualsOrdinal("Осталось времени"))
+                {
+                    if (cells.Length < 3)
+                        status.TimeLeft = cells[1].TextContent;
+                    else
+                        status.TimeLeft = cells[2].TextContent;
+                }
+                else if (cells[0].TextContent.EqualsOrdinal("Босс-раунд"))
+                {
+                    status.BossRoundAvailable = cells[1].TextContent.EqualsOrdinal("Доступен");
                 }
             }
 
@@ -72,13 +76,14 @@ namespace Sisa.Panel.Parsers
 
         private static List<PlayerLiveInfo> ParsePlayers(IDocument document)
         {
-            var players = new List<PlayerLiveInfo>();
-
             var table = document.QuerySelector("#scoreboard table");
             if (table == null)
-                return players;
+                return [];
 
-            foreach (var row in table.GetTableRows())
+            var rows = table.GetTableRows();
+            var players = new List<PlayerLiveInfo>(rows.Length);
+
+            foreach (var row in rows)
             {
                 if (row.ClassList.Contains("zombie_head") || row.ClassList.Contains("humans_head"))
                     continue;
@@ -99,7 +104,7 @@ namespace Sisa.Panel.Parsers
                     player.SteamId = cells[1].TextContent;
 
                     var fragsText = cells[2].TextContent;
-                    var fragsMatch = ParserRegex.FragsPattern().Match(fragsText);
+                    var fragsMatch = ParserRegex.FragsPattern.Match(fragsText);
 
                     if (fragsMatch.Success)
                     {
@@ -130,9 +135,10 @@ namespace Sisa.Panel.Parsers
 
         private static List<TeamSummary> ParseTeams(IDocument document)
         {
-            var teams = new List<TeamSummary>();
+            var headers = document.QuerySelectorAll("#scoreboard table tbody tr.zombie_head, #scoreboard table tbody tr.humans_head");
+            var teams = new List<TeamSummary>(headers.Length);
 
-            foreach (var header in document.QuerySelectorAll("#scoreboard table tbody tr.zombie_head, #scoreboard table tbody tr.humans_head"))
+            foreach (var header in headers)
             {
                 var cells = header.GetTableCells();
                 if (cells.Length >= 3)
@@ -145,7 +151,7 @@ namespace Sisa.Panel.Parsers
                         teamSummary.Team = PlayerTeam.Human;
 
                     var teamText = cells[0].TextContent;
-                    var playerCountMatch = ParserRegex.PlayerCountPattern().Match(teamText);
+                    var playerCountMatch = ParserRegex.PlayerCountPattern.Match(teamText);
 
                     if (playerCountMatch.Success)
                         teamSummary.PlayerCount = int.Parse(playerCountMatch.Groups[1].Value);
@@ -173,9 +179,9 @@ namespace Sisa.Panel.Parsers
             foreach (var script in document.QuerySelectorAll("script"))
             {
                 var scriptContent = script.TextContent;
-                if (scriptContent.Contains("chart3Dat") && scriptContent.Contains("data :"))
+                if (scriptContent.ContainsOrdinal("chart3Dat") && scriptContent.ContainsOrdinal("data :"))
                 {
-                    foreach (System.Text.RegularExpressions.Match match in ParserRegex.ActivityPattern().Matches(scriptContent))
+                    foreach (Match match in ParserRegex.ActivityPattern.Matches(scriptContent))
                     {
                         if (match.Groups.Count == 3)
                         {
@@ -195,9 +201,9 @@ namespace Sisa.Panel.Parsers
                     }
                 }
 
-                if (scriptContent.Contains("chart4Dat") && scriptContent.Contains("data:"))
+                if (scriptContent.ContainsOrdinal("chart4Dat") && scriptContent.ContainsOrdinal("data:"))
                 {
-                    foreach (System.Text.RegularExpressions.Match match in ParserRegex.ActivityPattern().Matches(scriptContent))
+                    foreach (Match match in ParserRegex.ActivityPattern.Matches(scriptContent))
                     {
                         if (match.Groups.Count == 3)
                         {
@@ -213,9 +219,10 @@ namespace Sisa.Panel.Parsers
 
         private static List<string> ParsePreviousMaps(IDocument document)
         {
-            var previousMaps = new List<string>();
+            var elems = document.QuerySelectorAll("#lastm .box-content .title");
+            var previousMaps = new List<string>(elems.Length);
 
-            foreach (var mapElement in document.QuerySelectorAll("#lastm .box-content .title"))
+            foreach (var mapElement in elems)
             {
                 var mapName = mapElement.TextContent.Trim();
 

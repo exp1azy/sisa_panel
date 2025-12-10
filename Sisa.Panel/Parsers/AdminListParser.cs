@@ -10,9 +10,11 @@ namespace Sisa.Panel.Parsers
         public async Task<IReadOnlyList<AdminInfo>> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
-            var adminsList = new List<AdminInfo>();
 
-            foreach (var block in document.QuerySelectorAll("div.smallstat.box"))
+            var adminBlocks = document.QuerySelectorAll("div.smallstat.box");
+            var adminsList = new List<AdminInfo>(adminBlocks.Length);
+
+            foreach (var block in adminBlocks)
             {
                 var adminInfo = new AdminInfo();
 

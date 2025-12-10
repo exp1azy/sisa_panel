@@ -36,7 +36,7 @@ namespace Sisa.Panel.Parsers
             var section = document.QuerySelector($"div[id='{className}']");
             if (section == null) return classInfo;
 
-            if (className != "Немезис")
+            if (!className.EqualsOrdinal("Немезис"))
             {
                 var propertiesTable = section.QuerySelector("table.table:first-of-type");
                 if (propertiesTable == null) return classInfo;
@@ -45,13 +45,12 @@ namespace Sisa.Panel.Parsers
                 {
                     foreach (var cell in row.GetTableCells())
                     {
-                        var text = cell.TextContent;
-                        if (text.Contains("Здоровье:"))
-                            classInfo.Health = ParsePropertyValue(text, "Здоровье:");
-                        else if (text.Contains("Скорость:"))
-                            classInfo.Speed = ParsePropertyValue(text, "Скорость:");
-                        else if (text.Contains("Отброс:"))
-                            classInfo.Knockback = text.Replace("Отброс:", string.Empty).Trim();
+                        if (cell.TextContent.ContainsOrdinal("Здоровье:"))
+                            classInfo.Health = ParsePropertyValue(cell.TextContent, "Здоровье:");
+                        else if (cell.TextContent.ContainsOrdinal("Скорость:"))
+                            classInfo.Speed = ParsePropertyValue(cell.TextContent, "Скорость:");
+                        else if (cell.TextContent.ContainsOrdinal("Отброс:"))
+                            classInfo.Knockback = cell.TextContent.Replace("Отброс:", string.Empty).Trim();
                     }
                 }
             }
@@ -62,42 +61,33 @@ namespace Sisa.Panel.Parsers
             foreach (var row in statsTable.GetTableRows())
             {
                 var cells = row.GetTableCells();
-                if (cells.Length >= 2)
-                {
-                    var statName = cells[0].TextContent;
-                    var statValueText = cells[1].TextContent;
 
-                    switch (statName)
-                    {
-                        case "Заражений":
-                            classInfo.Infects = ParseIntValue(statValueText);
-                            break;
-                        case "Убийств людей":
-                            classInfo.HumansKills = ParseIntValue(statValueText);
-                            break;
-                        case "Убийств выживших":
-                            classInfo.SurvivorsKills = ParseIntValue(statValueText);
-                            break;
-                        case "Смертей":
-                            classInfo.Deaths = ParseIntValue(statValueText);
-                            break;
-                        case "Игр":
-                            classInfo.Games = ParseIntValue(statValueText);
-                            break;
-                        case "Урон":
-                            classInfo.Damage = ParseLongValue(statValueText);
-                            break;
-                        case "Первый зомби":
-                            classInfo.FirstZm = ParseIntValue(statValueText);
-                            break;
-                        case "Самоубийств":
-                            classInfo.Suicides = ParseIntValue(statValueText);
-                            break;
-                    }
-                }
+                if (cells.Length < 2)
+                    continue;
+
+                var statName = cells[0].TextContent;
+                var statValueText = cells[1].TextContent;
+
+                if (statName.EqualsOrdinal("Заражений"))
+                    classInfo.Infects = ParseIntValue(statValueText);
+                else if (statName.EqualsOrdinal("Убийств людей"))
+                    classInfo.HumansKills = ParseIntValue(statValueText);
+                else if (statName.EqualsOrdinal("Убийств выживших"))
+                    classInfo.SurvivorsKills = ParseIntValue(statValueText);
+                else if (statName.EqualsOrdinal("Смертей"))
+                    classInfo.Deaths = ParseIntValue(statValueText);
+                else if (statName.EqualsOrdinal("Игр"))
+                    classInfo.Games = ParseIntValue(statValueText);
+                else if (statName.EqualsOrdinal("Урон"))
+                    classInfo.Damage = ParseLongValue(statValueText);
+                else if (statName.EqualsOrdinal("Первый зомби"))
+                    classInfo.FirstZm = ParseIntValue(statValueText);
+                else if (statName.EqualsOrdinal("Самоубийств"))
+                    classInfo.Suicides = ParseIntValue(statValueText);               
             }
 
             var playersSection = document.QuerySelector($"div[id='{playersSectionId}']");
+
             if (playersSection != null)
                 classInfo.Players = ParseZombieTopPlayers(playersSection).ToArray();
 
@@ -106,12 +96,15 @@ namespace Sisa.Panel.Parsers
 
         private static List<ZombieTopPlayerEntry> ParseZombieTopPlayers(IElement section)
         {
-            var players = new List<ZombieTopPlayerEntry>();
             var playersTable = section.QuerySelector("table.sortable");
 
-            if (playersTable == null) return players;
+            if (playersTable == null) 
+                return [];
 
-            foreach (var row in playersTable.GetTableRows())
+            var rows = playersTable.GetTableRows();
+            var players = new List<ZombieTopPlayerEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
                 if (cells.Length < 7) return players;

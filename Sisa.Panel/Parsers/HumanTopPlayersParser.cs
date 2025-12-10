@@ -150,37 +150,40 @@ namespace Sisa.Panel.Parsers
 
         private static List<HumanTopPlayerEntry> ParsePlayers(IDocument document, string sectionId)
         {
-            var players = new List<HumanTopPlayerEntry>();
             var section = document.QuerySelector($"div[id='{sectionId}']");
 
-            if (section != null)
+            if (section == null) 
+                return [];
+
+            var table = section.QuerySelector("table.sortable");
+
+            if (table == null) 
+                return [];
+
+            var rows = table.GetTableRows();
+            var players = new List<HumanTopPlayerEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
-                var table = section.QuerySelector("table.sortable");
-                if (table != null)
+                var cells = row.GetTableCells();
+                if (cells.Length < 6) return players;
+
+                var player = new HumanTopPlayerEntry
                 {
-                    foreach (var row in table.GetTableRows())
-                    {
-                        var cells = row.GetTableCells();
-                        if (cells.Length < 6) return players;
+                    RatingPosition = ParseCellValueInt(row, 0),
+                    Name = cells[1].ExtractLinkText().Trim(),
+                    Country = cells[1].ExtractImgAltAttribute(),
+                    ZombieKills = ParseCellValueInt(row, 2),
+                    Damage = ParseCellValueLong(row, 3),
+                    Deaths = ParseCellValueInt(row, 5),
+                    Games = ParseCellValueInt(row, 6),
+                    WasInfected = ParseCellValueInt(row, 4)
+                };
 
-                        var player = new HumanTopPlayerEntry
-                        {
-                            RatingPosition = ParseCellValueInt(row, 0),
-                            Name = cells[1].ExtractLinkText().Trim(),
-                            Country = cells[1].ExtractImgAltAttribute(),
-                            ZombieKills = ParseCellValueInt(row, 2),
-                            Damage = ParseCellValueLong(row, 3),
-                            Deaths = ParseCellValueInt(row, 5),
-                            Games = ParseCellValueInt(row, 6),
-                            WasInfected = ParseCellValueInt(row, 4)
-                        };
+                player.Games = player.Games == 0 ? null : player.Games;
+                player.WasInfected = player.WasInfected == 0 ? null : player.WasInfected;
 
-                        player.Games = player.Games == 0 ? null : player.Games;
-                        player.WasInfected = player.WasInfected == 0 ? null : player.WasInfected;
-
-                        players.Add(player);
-                    }
-                }
+                players.Add(player);
             }
 
             return players;
@@ -218,7 +221,7 @@ namespace Sisa.Panel.Parsers
         {
             var propertyRow = section
                 .QuerySelectorAll("table.table tbody tr")
-                .FirstOrDefault(tr => tr.TextContent.Contains(propertyName));
+                .FirstOrDefault(tr => tr.TextContent.ContainsOrdinal(propertyName));
 
             if (propertyRow != null)
             {
@@ -235,7 +238,7 @@ namespace Sisa.Panel.Parsers
         {
             var statRow = section
                 .QuerySelectorAll("table.table-condensed tbody tr")
-                .FirstOrDefault(tr => tr.TextContent.Contains(statName));
+                .FirstOrDefault(tr => tr.TextContent.ContainsOrdinal(statName));
 
             if (statRow != null)
             {
@@ -251,7 +254,7 @@ namespace Sisa.Panel.Parsers
         private static long ParseStatValueLong(IElement section, string statName)
         {
             var statRow = section.QuerySelectorAll("table.table-condensed tbody tr")
-                .FirstOrDefault(tr => tr.TextContent.Contains(statName));
+                .FirstOrDefault(tr => tr.TextContent.ContainsOrdinal(statName));
 
             if (statRow != null)
             {

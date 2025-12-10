@@ -11,13 +11,15 @@ namespace Sisa.Panel.Parsers
         public async Task<IReadOnlyList<ContestHistoryEntry>> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
-            var historyEntries = new List<ContestHistoryEntry>();
-
             var table = document.QuerySelector("table.table.table-bordered.table-condensed.table-hover.table-responsive");
-            if (table == null)
-                return historyEntries.AsReadOnly();
 
-            foreach (var row in table.GetTableRows())
+            if (table == null)
+                return [];
+
+            var rows = table.GetTableRows();
+            var historyEntries = new List<ContestHistoryEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
                 var entry = new ContestHistoryEntry();
@@ -31,12 +33,12 @@ namespace Sisa.Panel.Parsers
 
                 var name = cells[2].ExtractLinkText();
                 name = WebUtility.HtmlDecode(name);
-                name = ParserRegex.WhitespaceCleanupPattern().Replace(name, " ").Trim();
+                name = ParserRegex.WhitespaceCleanupPattern.Replace(name, " ").Trim();
                 entry.Winner = name;
 
                 var giftText = cells[3].TextContent;
                 giftText = WebUtility.HtmlDecode(giftText);
-                giftText = ParserRegex.WhitespaceCleanupPattern().Replace(giftText, " ").Trim();
+                giftText = ParserRegex.WhitespaceCleanupPattern.Replace(giftText, " ").Trim();
                 entry.Gift = giftText;
 
                 if (entry != null)

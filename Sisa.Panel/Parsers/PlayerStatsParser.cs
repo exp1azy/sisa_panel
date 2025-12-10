@@ -12,13 +12,15 @@ namespace Sisa.Panel.Parsers
         public async Task<IReadOnlyList<PlayerStatEntry>> ParseAsync(string html)
         {
             var document = await context.OpenAsync(req => req.Content(html));
-            var stats = new List<PlayerStatEntry>();
-
             var table = document.QuerySelector("table.table-bordered.table-condensed");
+
             if (table == null)
                 return [];
 
-            foreach (var row in table.GetTableRows())
+            var rows = table.GetTableRows();
+            var stats = new List<PlayerStatEntry>(rows.Length);
+
+            foreach (var row in rows)
             {
                 var cells = row.GetTableCells();
                 if (cells.Length < 10) continue;
@@ -57,7 +59,7 @@ namespace Sisa.Panel.Parsers
         private static string ParseName(IElement cell)
         {
             var textContent = cell.TextContent;
-            return ParserRegex.WhitespaceCleanupPattern().Replace(textContent, " ").Trim();
+            return ParserRegex.WhitespaceCleanupPattern.Replace(textContent, " ").Trim();
         }
 
         private static int ParseLevel(IElement cell)
