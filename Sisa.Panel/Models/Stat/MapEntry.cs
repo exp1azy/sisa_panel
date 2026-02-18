@@ -29,5 +29,10 @@
         /// Ничьи.
         /// </summary>
         public int Draws { get; set; }
+
+        /// <summary>
+        /// Ссылка на изображение карты.
+        /// </summary>
+        public string MapImage { get; set; }
     }
 }

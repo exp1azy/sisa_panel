@@ -28,6 +28,9 @@ namespace Sisa.Panel.Parsers
         {
             var status = new ServerStatus();
 
+            var mapImageElement = document.QuerySelector(".span6 center img.img-rounded");
+            status.MapImage = mapImageElement == null ? string.Empty : mapImageElement.ExtractRelativeImageUrl();
+
             var table = document.QuerySelector("table.table-condensed");
             if (table == null)
                 return status;
@@ -101,6 +104,7 @@ namespace Sisa.Panel.Parsers
                     var playerCell = cells[0];
                     player.Country = playerCell.ExtractImgAltAttribute();
                     player.PlayerName = playerCell.ExtractLinkText().Trim();
+                    player.Image = playerCell.ExtractAbsoluteImageUrl();
                     player.SteamId = cells[1].TextContent;
 
                     var fragsText = cells[2].TextContent;
@@ -217,17 +221,26 @@ namespace Sisa.Panel.Parsers
             return statistics;
         }
 
-        private static List<string> ParsePreviousMaps(IDocument document)
+        private static List<LivePreviousMap> ParsePreviousMaps(IDocument document)
         {
-            var elems = document.QuerySelectorAll("#lastm .box-content .title");
-            var previousMaps = new List<string>(elems.Length);
+            var mapContainers = document.QuerySelectorAll("#lastm .box-content .span4.smallchart.blue.box.mobileHalf");
+            var previousMaps = new List<LivePreviousMap>(mapContainers.Length);
 
-            foreach (var mapElement in elems)
+            foreach (var container in mapContainers)
             {
-                var mapName = mapElement.TextContent.Trim();
+                var mapElement = container.QuerySelector(".title");
+                var imgElement = container.QuerySelector("img.img-nomarg");
 
-                if (!string.IsNullOrEmpty(mapName))
-                    previousMaps.Add(mapName);
+                var mapName = mapElement?.TextContent.Trim() ?? string.Empty;
+                var mapImage = imgElement?.ExtractRelativeImageUrl();
+                
+                var previousMap = new LivePreviousMap
+                {
+                    Name = mapName,
+                    MapImage = mapImage ?? string.Empty
+                };
+
+                previousMaps.Add(previousMap);
             }
 
             return previousMaps;

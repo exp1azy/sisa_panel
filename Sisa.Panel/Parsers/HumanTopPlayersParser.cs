@@ -32,6 +32,7 @@ namespace Sisa.Panel.Parsers
             return new HumanClassInfo
             {
                 Name = "Человек",
+                ClassImage = section.QuerySelector(".span4 center img")?.ExtractRelativeImageUrl() ?? string.Empty,
                 Health = ParsePropertyValue(section, "Здоровье", 0),
                 Gravity = ParsePropertyValue(section, "Гравитация", 1),
                 ZombieKills = ParseStatValue(section, "Убийств Зомби"),
@@ -52,6 +53,7 @@ namespace Sisa.Panel.Parsers
             return new HumanClassInfo
             {
                 Name = "Выживший",
+                ClassImage = section.QuerySelector(".span4 center img")?.ExtractRelativeImageUrl() ?? string.Empty,
                 Speed = ParsePropertyValue(section, "Скорость", 0),
                 Gravity = ParsePropertyValue(section, "Гравитация", 1),
                 ZombieKills = ParseStatValue(section, "Убийств Зомби"),
@@ -72,6 +74,7 @@ namespace Sisa.Panel.Parsers
             return new HumanClassInfo
             {
                 Name = "Героиня",
+                ClassImage = section.QuerySelector(".span4 center img")?.ExtractRelativeImageUrl() ?? string.Empty,
                 Health = ParsePropertyValue(section, "Здоровье", 0),
                 Speed = ParsePropertyValue(section, "Скорость", 1),
                 Gravity = ParsePropertyValue(section, "Гравитация", 2),
@@ -94,6 +97,7 @@ namespace Sisa.Panel.Parsers
             return new HumanClassInfo
             {
                 Name = "Продвинутый мод",
+                ClassImage = section.QuerySelector(".span4 center img")?.ExtractRelativeImageUrl() ?? string.Empty,
                 Health = ParsePropertyValue(section, "Здоровье", 0),
                 Gravity = ParsePropertyValue(section, "Гравитация", 1),
                 ZombieKills = ParseStatValue(section, "Убийств Зомби"),
@@ -114,6 +118,7 @@ namespace Sisa.Panel.Parsers
             return new HumanClassInfo
             {
                 Name = "Женский мод",
+                ClassImage = section.QuerySelector(".span4 center img")?.ExtractRelativeImageUrl() ?? string.Empty,
                 Health = ParsePropertyValue(section, "Здоровье", 0),
                 Gravity = ParsePropertyValue(section, "Гравитация", 1),
                 ZombieKills = ParseStatValue(section, "Убийств Зомби"),
@@ -134,6 +139,7 @@ namespace Sisa.Panel.Parsers
             return new HumanClassInfo
             {
                 Name = "Герой",
+                ClassImage = section.QuerySelector(".span4 center img")?.ExtractRelativeImageUrl() ?? string.Empty,
                 Health = ParsePropertyValue(section, "Здоровье", 0),
                 Speed = ParsePropertyValue(section, "Скорость", 1),              
                 Gravity = ParsePropertyValue(section, "Гравитация", 2),

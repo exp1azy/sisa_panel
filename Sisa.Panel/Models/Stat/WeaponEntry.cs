@@ -74,5 +74,10 @@
         /// Коэффициент.
         /// </summary>
         public int Ratio { get; set; }
+
+        /// <summary>
+        /// Ссылка на изображение оружия.
+        /// </summary>
+        public string WeaponImage { get; set; }
     }
 }

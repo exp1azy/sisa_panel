@@ -36,6 +36,8 @@ namespace Sisa.Panel.Parsers
             var section = document.QuerySelector($"div[id='{className}']");
             if (section == null) return classInfo;
 
+            classInfo.ClassImage = section.QuerySelector(".span4 img")?.ExtractRelativeImageUrl() ?? string.Empty;
+
             if (!className.EqualsOrdinal("Немезис"))
             {
                 var propertiesTable = section.QuerySelector("table.table:first-of-type");

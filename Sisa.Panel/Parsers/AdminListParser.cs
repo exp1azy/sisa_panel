@@ -21,6 +21,7 @@ namespace Sisa.Panel.Parsers
                 var nameLink = block.GetSteamProfileElement();
                 if (nameLink != null)
                 {
+                    adminInfo.Image = block.ExtractAbsoluteImageUrl();
                     adminInfo.AdminName = nameLink.TextContent;
                     adminInfo.SteamProfile = nameLink.GetAttribute("href") ?? string.Empty;
                 }

@@ -35,17 +35,20 @@ namespace Sisa.Panel.Parsers
             foreach (var block in blocks)
             {
                 var span = block.QuerySelector("span.charts-label1");
-                var nameLink = span.GetSteamProfileElement();
+                var nameLink = span?.GetSteamProfileElement();
 
                 var name = nameLink?.TextContent;
                 var steamProfile = nameLink?.GetAttribute("href") ?? string.Empty;
+                var image = block.ExtractAbsoluteImageUrl();
+
                 var para = block.QuerySelector("p.charts-label1")?.TextContent;
 
                 var winner = new LastWinner
                 {
-                    Name = name,
+                    Name = name ?? string.Empty,
                     SteamProfile = steamProfile,
-                    Gift = para
+                    Gift = para ?? string.Empty,
+                    Image = image
                 };
 
                 winners.Add(winner);
@@ -72,6 +75,7 @@ namespace Sisa.Panel.Parsers
 
                 var country = cells[1].ExtractImgAltAttribute();
                 var name = cells[1].ExtractLinkText();
+                var image = cells[1].ExtractAbsoluteImageUrl();
 
                 if (string.IsNullOrEmpty(name))
                     name = cells[1].TextContent;
@@ -83,7 +87,8 @@ namespace Sisa.Panel.Parsers
                 {
                     Country = country,
                     Name = name.Trim() ?? "Неизвестно",
-                    RegisteredAt = registeredAt
+                    RegisteredAt = registeredAt,
+                    Image = image
                 };
 
                 if (participant != null)

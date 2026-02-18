@@ -64,5 +64,10 @@
         /// Нож.
         /// </summary>
         public string Knife { get; set; }
+
+        /// <summary>
+        /// Ссылка на фотографию игрока.
+        /// </summary>
+        public string Image { get; set; }
     }
 }

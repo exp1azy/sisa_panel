@@ -25,6 +25,9 @@ namespace Sisa.Panel.Parsers
         {
             var generalInfo = new ClanGeneralInfo();
 
+            var clanImageElement = document.QuerySelector(".box-content .row-fluid .span12 center img");
+            generalInfo.ClanImage = clanImageElement.ExtractRelativeImageUrl();
+
             var spans = document.QuerySelectorAll("span");
             var actions = new List<string>(spans.Length);
 

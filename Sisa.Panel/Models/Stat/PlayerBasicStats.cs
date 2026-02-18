@@ -11,6 +11,11 @@
         public string Knife { get; set; }
 
         /// <summary>
+        /// Ссылка на изображение ножа.
+        /// </summary>
+        public string KnifeImage { get; set; }
+
+        /// <summary>
         /// Опыт.
         /// </summary>
         public int Exp { get; set; }

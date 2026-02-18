@@ -31,6 +31,15 @@ namespace Sisa.Panel.Parsers
         private static PlayerGeneralInfo ParseGeneralInfo(IDocument document)
         {
             var generalInfo = new PlayerGeneralInfo();
+
+            var avatarElement = document.QuerySelector(".span4 center img.img-circle");
+            if (avatarElement != null)
+            {
+                var avatarSrc = avatarElement.GetAttribute("src");
+                if (!string.IsNullOrEmpty(avatarSrc))
+                    generalInfo.Image = avatarSrc;
+            }
+
             var nickValueElement = document.QuerySelector(".span8 .value");
 
             if (nickValueElement != null)
@@ -176,7 +185,10 @@ namespace Sisa.Panel.Parsers
                 {
                     var knifeImg = row.QuerySelector("img");
                     if (knifeImg != null)
-                        stats.Knife = knifeImg.GetAttribute("title");
+                    {
+                        stats.Knife = knifeImg.GetAttribute("title") ?? string.Empty;
+                        stats.KnifeImage = knifeImg.ExtractRelativeImageUrl();
+                    }  
                 }
                 else if (label.EqualsOrdinal("EXP"))
                 {
@@ -348,8 +360,6 @@ namespace Sisa.Panel.Parsers
                         if (int.TryParse(cleanValue, out int bossKills))
                             progress.BossKills = bossKills;
                     }
-
-                    break;
                 }
             }
 
@@ -372,6 +382,9 @@ namespace Sisa.Panel.Parsers
                 var labelElement = card.QuerySelector(".label");
                 if (labelElement != null)
                     weapon.Main = labelElement.ClassList.Contains("label-online");
+
+                var weaponImageElement = card.QuerySelector(".span10 center img");
+                weapon.WeaponImage = weaponImageElement?.ExtractRelativeImageUrl() ?? string.Empty;
 
                 var textSpan = card.QuerySelector(".row-fluid:last-child .span12");
                 if (textSpan != null)
@@ -414,6 +427,7 @@ namespace Sisa.Panel.Parsers
                 {
                     var weapon = new PlayerWeaponStatEntry
                     {
+                        WeaponImage = cells[0].QuerySelector("a img")?.ExtractRelativeImageUrl() ?? string.Empty,
                         Name = cells[1].TextContent,
                         Shots = ParseIntFromSpan(cells[2]),
                         Hits = ParseIntFromSpan(cells[3]),
@@ -450,6 +464,8 @@ namespace Sisa.Panel.Parsers
                 {
                     var weapon = new PlayerModWeaponStatEntry
                     {
+                        ClassImage = cells[0].QuerySelector("a img")?.ExtractRelativeImageUrl() ?? string.Empty,
+                        WeaponImage = cells[1].QuerySelector("center img")?.ExtractRelativeImageUrl() ?? string.Empty,
                         Mod = GetModFromImage(cells[0]),
                         Name = cells[2].TextContent,
                         Shots = ParseIntFromSpan(cells[3]),
@@ -484,6 +500,7 @@ namespace Sisa.Panel.Parsers
                 {
                     var stat = new PlayerZombieStatEntry
                     {
+                        ZombieImage = cells[0].QuerySelector("a img")?.ExtractRelativeImageUrl() ?? string.Empty,
                         Class = GetZombieClassFromImage(cells[0]),
                         RatingPosition = ParseIntFromSpan(cells[1]),
                         Infects = ParseIntFromSpan(cells[2]),
@@ -518,7 +535,10 @@ namespace Sisa.Panel.Parsers
 
             foreach (var block in blocks)
             {
-                var grenade = new PlayerZombieGrenadesInfo();
+                var grenade = new PlayerZombieGrenadesInfo
+                {
+                    GrenadeImage = block.QuerySelector("center img")?.ExtractRelativeImageUrl() ?? string.Empty
+                };
 
                 var nameElement = block.QuerySelector(".charts-label1");
                 if (nameElement != null)

@@ -66,6 +66,11 @@
         public int Suicides { get; set; }
 
         /// <summary>
+        /// Ссылка на изображение класса зомби.
+        /// </summary>
+        public string ClassImage { get; set; }
+
+        /// <summary>
         /// Топ-10 лучших игроков за зомби.
         /// </summary>
         public ZombieTopPlayerEntry[] Players { get; set; } = new ZombieTopPlayerEntry[10];

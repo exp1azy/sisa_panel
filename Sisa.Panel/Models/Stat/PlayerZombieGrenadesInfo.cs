@@ -29,5 +29,10 @@
         /// Количество убийств.
         /// </summary>
         public int Kills { get; set; }
+
+        /// <summary>
+        /// Ссылка на изображение гранаты.
+        /// </summary>
+        public string GrenadeImage { get; set; }
     }
 }

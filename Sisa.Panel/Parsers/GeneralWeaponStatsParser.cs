@@ -37,6 +37,7 @@ namespace Sisa.Panel.Parsers
 
                 var weapon = new WeaponEntry
                 {
+                    WeaponImage = cells[0].QuerySelector("img")?.ExtractRelativeImageUrl() ?? string.Empty,
                     Wid = ParseWid(cells[1]),
                     Name = GetTextContent(cells[1]),
                     Shots = ParseInt(GetTextContent(cells[2])),
@@ -89,6 +90,8 @@ namespace Sisa.Panel.Parsers
                     var modWeapon = new ModWeaponEntry
                     {
                         BelongsTo = belongsTo,
+                        ClassImage = cells[0].QuerySelector("img")?.ExtractRelativeImageUrl() ?? string.Empty,
+                        WeaponImage = cells[1].QuerySelector("img")?.ExtractRelativeImageUrl() ?? string.Empty,
                         Name = GetTextContent(cells[2]),
                         Shots = ParseInt(GetTextContent(cells[3])),
                         ZombieKills = ParseInt(GetTextContent(cells[4])),

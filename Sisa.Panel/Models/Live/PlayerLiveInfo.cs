@@ -49,5 +49,10 @@
         /// Команда, за которую играет (зомби или люди).
         /// </summary>
         public PlayerTeam Team { get; set; }
+
+        /// <summary>
+        /// Ссылка на фотографию игрока.
+        /// </summary>
+        public string Image { get; set; }
     }
 }

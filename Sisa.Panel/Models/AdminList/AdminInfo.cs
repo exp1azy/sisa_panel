@@ -19,5 +19,10 @@
         /// Steam профиль.
         /// </summary>
         public string SteamProfile { get; set; }
+
+        /// <summary>
+        /// Ссылка на фотографию админа.
+        /// </summary>
+        public string Image { get; set; }
     }
 }

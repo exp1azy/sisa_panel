@@ -30,6 +30,6 @@ namespace Sisa.Panel.Responses
         /// <summary>
         /// Предыдущие карты.
         /// </summary>
-        public IReadOnlyList<string> PreviousMaps { get; set; }
+        public IReadOnlyList<LivePreviousMap> PreviousMaps { get; set; }
     }
 }

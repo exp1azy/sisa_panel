@@ -51,6 +51,24 @@ namespace Sisa.Panel.Extensions
 
                 return 0;
             }
+
+            public string ExtractAbsoluteImageUrl()
+            {
+                var imgElement = element.QuerySelector("img.img-circle");
+                return imgElement?.GetAttribute("src") ?? string.Empty;
+            }
+
+            public string ExtractRelativeImageUrl()
+            {
+                var imageSrc = element.GetAttribute("src");
+                if (!string.IsNullOrEmpty(imageSrc))
+                {
+                    if (imageSrc.StartsWith('/'))
+                        return "https://panel.lan-game.com" + imageSrc;
+                }
+
+                return string.Empty;
+            }
         }
     }
 }

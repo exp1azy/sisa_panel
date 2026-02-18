@@ -64,5 +64,10 @@
         /// Онлайн.
         /// </summary>
         public string Online { get; set; }
+
+        /// <summary>
+        /// Ссылка на фотографию игрока.
+        /// </summary>
+        public string Image { get; set; }
     }
 }

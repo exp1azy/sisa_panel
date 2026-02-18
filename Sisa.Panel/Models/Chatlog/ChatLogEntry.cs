@@ -39,5 +39,10 @@
         /// STEAM ID игрока.
         /// </summary>
         public string SteamId { get; set; }
+
+        /// <summary>
+        /// Ссылка на фотографию игрока.
+        /// </summary>
+        public string Image { get; set; }
     }
 }

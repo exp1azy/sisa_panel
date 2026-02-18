@@ -30,6 +30,7 @@ namespace Sisa.Panel.Parsers
                     RatingPosition = ParseElementTextToInt(cells[0]),
                     Uid = cells[1].QuerySelector("a[href*='uid=']")!.ExtractUid(),
                     Country = cells[1].ExtractImgAltAttribute(),
+                    Image = cells[1].ExtractAbsoluteImageUrl(),
                     Name = ParseName(cells[1]),
                     Level = ParseLevel(cells[2]),
                     Exp = ParseExp(cells[3]),
@@ -65,7 +66,7 @@ namespace Sisa.Panel.Parsers
         private static int ParseLevel(IElement cell)
         {
             var levelSpan = cell.QuerySelector("span.lvlx");
-            var levelText = levelSpan.TextContent;
+            var levelText = levelSpan?.TextContent;
             _ = int.TryParse(levelText, out int level);
             
             return level;
@@ -158,7 +159,7 @@ namespace Sisa.Panel.Parsers
         private static string ParseKnife(IElement cell)
         {
             var knifeImg = cell.QuerySelector("img");
-            return knifeImg.GetAttribute("title")!;
+            return knifeImg?.GetAttribute("title")!;
         }
     }
 }

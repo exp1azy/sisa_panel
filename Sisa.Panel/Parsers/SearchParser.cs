@@ -29,7 +29,8 @@ namespace Sisa.Panel.Parsers
 
                 var entry = new PlayerSearchEntry
                 {
-                    Country = cells[1].ExtractImgAltAttribute()
+                    Country = cells[1].ExtractImgAltAttribute(),
+                    Image = cells[1].ExtractAbsoluteImageUrl()
                 };
 
                 var link = cells[1].QuerySelector("a");
@@ -40,7 +41,7 @@ namespace Sisa.Panel.Parsers
                 entry.Rank = rankSpan?.TextContent ?? "N/A";
 
                 var levelSpan = cells[3].QuerySelector("span.lvlx");
-                var levelText = levelSpan.TextContent;
+                var levelText = levelSpan?.TextContent;
                 _ = int.TryParse(levelText, out int level);
                 entry.Level = level;
 

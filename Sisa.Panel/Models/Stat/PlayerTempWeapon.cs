@@ -19,5 +19,10 @@
         /// Оставшееся время.
         /// </summary>
         public string RemainingTime { get; set; }
+
+        /// <summary>
+        /// Ссылка на изображение временного оружия.
+        /// </summary>
+        public string WeaponImage { get; set; }
     }
 }

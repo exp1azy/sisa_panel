@@ -19,5 +19,10 @@
         /// Дата регистрации в конкурсе.
         /// </summary>
         public DateTime RegisteredAt { get; set; }
+
+        /// <summary>
+        /// Ссылка на фотографию игрока.
+        /// </summary>
+        public string Image { get; set; }
     }
 }

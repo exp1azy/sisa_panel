@@ -36,6 +36,9 @@ namespace Sisa.Panel.Parsers
                 name = ParserRegex.WhitespaceCleanupPattern.Replace(name, " ").Trim();
                 entry.Winner = name;
 
+                var image = cells[2].ExtractAbsoluteImageUrl();
+                entry.Image = image;
+
                 var giftText = cells[3].TextContent;
                 giftText = WebUtility.HtmlDecode(giftText);
                 giftText = ParserRegex.WhitespaceCleanupPattern.Replace(giftText, " ").Trim();

@@ -54,5 +54,10 @@
         /// Количество самоубийств.
         /// </summary>
         public int Suicides { get; set; }
+
+        /// <summary>
+        /// Ссылка на изображение класса зомби.
+        /// </summary>
+        public string ZombieImage { get; set; }
     }
 }

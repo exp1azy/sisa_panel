@@ -54,5 +54,10 @@
         /// Количество заражений участниками клана.
         /// </summary>
         public int Infections { get; set; }
+
+        /// <summary>
+        /// Ссылка на изображение клана.
+        /// </summary>
+        public string ClanImage { get; set; }
     }
 }

@@ -59,5 +59,10 @@
         /// Количество убийств босса.
         /// </summary>
         public int BossKills { get; set; }
+
+        /// <summary>
+        /// Ссылка на изображение оружия.
+        /// </summary>
+        public string WeaponImage { get; set; }
     }
 }

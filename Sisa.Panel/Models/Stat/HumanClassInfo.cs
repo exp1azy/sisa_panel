@@ -61,6 +61,11 @@
         public int? WasInfected { get; set; }
 
         /// <summary>
+        /// Ссылка на изображение класса.
+        /// </summary>
+        public string ClassImage { get; set; }
+
+        /// <summary>
         /// Топ-10 лучших игроков за людей.
         /// </summary>
         public HumanTopPlayerEntry[] Players { get; set; } = new HumanTopPlayerEntry[10];

@@ -30,13 +30,14 @@ namespace Sisa.Panel.Parsers
                 {
                     RatingPosition = ParseInt(cells[0].TextContent),
                     Country = cells[1].ExtractImgAltAttribute(),
+                    Image = cells[1].ExtractAbsoluteImageUrl(),
                     Name = cells[1].ExtractLinkText().Trim(),
                     Shots = ParseInt(GetSpanTitleValue(cells[2], "Выстрелов")),
                     Hits = ParseInt(GetSpanTitleValue(cells[3], "Попаданий"))
                 };
 
                 var progressDiv = cells[4].QuerySelector("div.taskProgress");
-                var accuracyText = progressDiv.TextContent;
+                var accuracyText = progressDiv?.TextContent;
                 _ = int.TryParse(accuracyText, out int accuracy);
                 entry.Accuracy = accuracy;
 

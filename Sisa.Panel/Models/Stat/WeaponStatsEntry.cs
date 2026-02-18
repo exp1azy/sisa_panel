@@ -69,5 +69,10 @@
         /// Количество убитых боссов.
         /// </summary>
         public int BossKills { get; set; }
+
+        /// <summary>
+        /// Ссылка на фотографию игрока.
+        /// </summary>
+        public string Image { get; set; }
     }
 }

@@ -43,6 +43,7 @@ namespace Sisa.Panel.Parsers
 
                 entry.Country = columns[4].ExtractImgAltAttribute();
                 entry.PlayerName = columns[4].ExtractLinkText().Trim();
+                entry.Image = columns[4].ExtractAbsoluteImageUrl();
 
                 var messageElement = columns[5].QuerySelector("span.chatmessage");
                 entry.Message = messageElement?.TextContent.Trim() ?? columns[5].TextContent.Trim();
